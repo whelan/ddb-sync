@@ -1,3 +1,7 @@
+# 0.0.7
+- Thanks to unnamedjk. Now supports username/password htauth for custom proxies
+- Thanks to unnamedjk. Has cleaner order for Attack and Damage handler matching before the generic fallback
+
 # 0.0.6
 
 - Only process DDB messages on GM account.  Prevents issue with multiple rolls being performed.  Refactored main.js initialize into ready hook so we know if user is GM or not.
