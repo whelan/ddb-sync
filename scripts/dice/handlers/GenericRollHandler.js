@@ -1,66 +1,57 @@
-import { IRollHandler } from '../interfaces/IRollHandler.js';
+import { IRollHandler } from '../../dice/interfaces/IRollHandler.js';
 
 /**
  * Generic Roll Handler
- * Responsibility: Handle any roll type not covered by specific handlers
- * SOLID: Single Responsibility - fallback handler for all other rolls
- * Pattern: Strategy
+ * Last-resort fallback for any roll type not handled by a specific handler.
+ * MUST be registered last in DDBSyncManager.registerRollHandlers().
+ *
+ * This handler intentionally does the minimum: build a plain roll and post it.
+ * It does NOT attempt to link to usage cards or build typed rolls — those
+ * concerns belong to AttackRollHandler and DamageRollHandler.
+ *
+ * If you find a roll type landing here that should have richer behaviour,
+ * create a dedicated handler for it and register it before this one.
  */
 export class GenericRollHandler extends IRollHandler {
   constructor(diceExtractor, rollBuilder) {
     super();
     this.diceExtractor = diceExtractor;
-    this.rollBuilder = rollBuilder;
-    this.logger = console;
+    this.rollBuilder   = rollBuilder;
+    this.logger        = console;
   }
 
-  /**
-   * Generic handler can handle any roll (always returns true)
-   * Should be registered last as fallback
-   */
-  canHandle(rollData) {
-    return true;
-  }
+  // Catches everything — must be last in the handler list
+  canHandle(rollData) { return true; }
+  usesCache()         { return false; }
 
-  usesCache() {
-    return false;
-  }
-
-
-  /**
-   * Handle generic roll
-   */
   async handle(actor, rollData) {
-    const rollType = (rollData.action || '') + ' ' + (rollData.rollType || rollData.rolls?.[0]?.rollType || 'generic');
-    this.logger.log(`DDB Sync | Handling ${rollType} roll for ${actor.name}`);
+    const rollType   = rollData.rollType || rollData.rolls?.[0]?.rollType || 'generic';
+    const actionName = rollData.action ?? 'Unknown';
 
-      // Extract DDB dice results
-      const ddbDiceResults = this.diceExtractor.extractDiceResults(rollData);
-      
-      const buildFormula = this.diceExtractor.parseDiceFormula(rollData);
-      const formula = buildFormula.formula;
+    this.logger.log(
+      `DDB Sync | GenericRollHandler: handling "${actionName}" (${rollType}) for ${actor.name}`
+    );
 
-      // Create roll with DDB results (or basic roll) and post a roll card to chat
-      let roll;
-      if (ddbDiceResults.length > 0) {
-        roll = await this.rollBuilder.buildRollWithDDBResults(formula, ddbDiceResults);
-      } else {
-        roll = await this.rollBuilder.buildBasicRoll(formula);
-      }
+    const ddbDiceResults = this.diceExtractor.extractDiceResults(rollData);
+    const parsed         = this.diceExtractor.parseDiceFormula(rollData);
 
-      // Post the roll as a chat message (roll card)
-      let flavor = `${rollType}`;
-      const speaker = ChatMessage.getSpeaker({ actor });
-      
-      if (buildFormula.isAdvantage) { 
-        flavor += ' (Advantage)';
-      }
-      else if (buildFormula.isDisadvantage) { 
-        flavor += ' (Disadvantage)';
-      }
+    // buildRoll() produces a plain Roll — appropriate for anything that doesn't
+    // need typed dice (D20Roll / DamageRoll) or chat card linking.
+    const roll = await this.rollBuilder.buildRoll(parsed.formula, ddbDiceResults);
 
-      await roll.toMessage({ flavor, speaker });
+    await roll.toMessage({
+      speaker: ChatMessage.getSpeaker({ actor }),
+      flavor:  `${actionName}`,
+      flags: {
+        dnd5e: {
+          messageType: 'roll',
+        },
+        core: { canPopout: true },
+      },
+    });
 
-      this.logger.log(`DDB Sync | Processed ${rollType} roll for ${actor.name}`);
+    this.logger.log(
+      `DDB Sync | GenericRollHandler: posted roll for "${actionName}" total=${roll.total}`
+    );
   }
 }
