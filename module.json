@@ -1,7 +1,7 @@
 {
   "id": "ddb-sync",
   "title": "D&D Beyond Sync",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "url": "https://github.com/AshDarkley/ddb-sync",
   "manifest": "https://github.com/AshDarkley/ddb-sync/releases/latest/download/module.json",
   "download": "https://github.com/AshDarkley/ddb-sync/releases/latest/download/module.zip",
