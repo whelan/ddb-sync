@@ -42,12 +42,11 @@ export class AttackRollHandler extends IRollHandler {
 
     // Find the matching item on the actor
     const item = this._findMatchingItem(actor, action);
-    if (!item) {
-      this.logger.warn(`DDB Sync | No matching item "${action}" found on actor ${actor.name}`);
-      return;
+    if (item) {
+      this.logger.log(`DDB Sync | Found matching item "${item.name}" for DDB action "${action}"`);
+    } else {
+      this.logger.warn(`DDB Sync | No matching item "${action}" found on ${actor.name}. Rolling generic attack.`);
     }
-
-    this.logger.log(`DDB Sync | Found matching item "${item.name}" for DDB action "${action}"`);
 
     try {
       // Parse the DDB roll formula (includes advantage/disadvantage)
@@ -61,8 +60,9 @@ export class AttackRollHandler extends IRollHandler {
       DDBRollInjector.setPending(rollData);
       const roll = await this.rollBuilder.buildRollWithDDBResults(formula, ddbDiceResults);
 
-      // Build flavor text
-      let flavor = `${item.name} - Attack Roll`;
+      // Build flavor text (use item name if found, otherwise use action)
+      const weaponName = item?.name || action;
+      let flavor = `${weaponName} - Attack Roll`;
       if (parsed.isAdvantage) flavor += ' (Advantage)';
       else if (parsed.isDisadvantage) flavor += ' (Disadvantage)';
 
