@@ -3,6 +3,7 @@ import { CharacterMappingApplication } from './ui/CharacterMappingApplication.js
 import { DDBSyncManager } from './core/DDBSyncManager.js';
 import { RollEvaluationOverride } from './core/overrides/RollEvaluationOverride.js';
 import { DiceModeSelector } from './ui/DiceModeSelector.js';
+import { DDBRollInjector } from './core/overrides/DDBRollInjector.js';
 
 // Initialize on Foundry ready
 Hooks.once('init', () => {
@@ -22,6 +23,10 @@ Hooks.once('ready', async () => {
     game.DDBSync?.diceInputDialog
   );
   rollEvaluationOverride.initialize();
+
+  // dnd5e v5: inject DDB dice into the system's own D20Roll/DamageRoll classes.
+  DDBRollInjector.install();
+  globalThis.DDBSyncInjector = DDBRollInjector;
 
   const enabled = game.settings.get(DDBSyncManager.ID, 'enabled');
   if (enabled && game.DDBSync) {
