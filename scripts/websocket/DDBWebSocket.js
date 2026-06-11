@@ -152,6 +152,8 @@ export class DDBWebSocket extends EventTarget {
           const diceData = message.data || message;
           diceData.eventType = message.eventType;
           diceData.id = message.rollId;
+          // The envelope's userId identifies the roller; RollModePolicy needs it
+          diceData.rollerUserId = message.userId ?? null;
           this.dispatchEvent(new CustomEvent('message', { detail: diceData }));
           break;
 
