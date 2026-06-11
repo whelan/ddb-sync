@@ -28,7 +28,7 @@ export class RollModePolicy {
       return { rollMode: 'publicroll' };
     }
     const ownUserId = game.settings.get('ddb-sync', 'userId');
-    if (String(rollerUserId) === String(ownUserId)) {
+    if (ownUserId && String(rollerUserId) === String(ownUserId)) {
       // GM's own roll: let Foundry apply the current core.rollMode dropdown
       return {};
     }

@@ -16,7 +16,7 @@ class RollModePolicy {
       return { rollMode: 'publicroll' };
     }
     const ownUserId = game.settings.get('ddb-sync', 'userId');
-    if (String(rollerUserId) === String(ownUserId)) {
+    if (ownUserId && String(rollerUserId) === String(ownUserId)) {
       // GM's own roll: let Foundry apply the current core.rollMode dropdown
       return {};
     }
@@ -76,6 +76,13 @@ describe('RollModePolicy', () => {
     it('forces publicroll when the userId setting is empty', () => {
       global.game.settings.get.mockReturnValue('');
       const result = RollModePolicy.messageOptions({ rollerUserId: '1111111' });
+      expect(result).toEqual({ rollMode: 'publicroll' });
+      expect(RollModePolicy.logger.warn).not.toHaveBeenCalled();
+    });
+
+    it('forces publicroll when both the setting and rollerUserId are empty strings', () => {
+      global.game.settings.get.mockReturnValue('');
+      const result = RollModePolicy.messageOptions({ rollerUserId: '' });
       expect(result).toEqual({ rollMode: 'publicroll' });
     });
 
