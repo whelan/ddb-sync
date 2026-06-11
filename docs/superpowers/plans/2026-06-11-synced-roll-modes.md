@@ -613,7 +613,7 @@ Expected: all six handler files listed.
 - [ ] **Step 2: Run the full suite one last time**
 
 Run: `npx jest`
-Expected: PASS, including the 9 new RollModePolicy tests.
+Expected: PASS, including the 10 RollModePolicy tests (9 from Task 1 plus one added in review for the both-empty-strings guard).
 
 - [ ] **Step 3: Manual verification on the Forge (requires the user)**
 
