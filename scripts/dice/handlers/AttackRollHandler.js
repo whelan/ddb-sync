@@ -1,5 +1,6 @@
 import { IRollHandler } from '../interfaces/IRollHandler.js';
 import { DDBRollInjector } from '../../core/overrides/DDBRollInjector.js';
+import { RollModePolicy } from '../RollModePolicy.js';
 
 /**
  * Attack Roll Handler
@@ -69,7 +70,7 @@ export class AttackRollHandler extends IRollHandler {
       // Post directly to chat (no dialog)
       const speaker = ChatMessage.getSpeaker({ actor });
       if (typeof roll.toMessage === 'function') {
-        await roll.toMessage({ flavor, speaker });
+        await roll.toMessage({ flavor, speaker }, RollModePolicy.messageOptions(rollData));
       }
 
       this.logger.log(`DDB Sync | ${flavor} → Total: ${roll.total} for ${actor.name}`);
