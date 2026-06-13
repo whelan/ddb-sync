@@ -1,4 +1,5 @@
 import { IRollHandler } from '../interfaces/IRollHandler.js';
+import { RollModePolicy } from '../RollModePolicy.js';
 
 /**
  * Save Roll Handler
@@ -97,7 +98,7 @@ export class SaveRollHandler extends IRollHandler {
 
     const speaker = ChatMessage.getSpeaker({ actor });
     if (typeof roll.toMessage === 'function')
-      await roll.toMessage({ flavor, speaker });
+      await roll.toMessage({ flavor, speaker }, RollModePolicy.messageOptions(rollData));
 
     
     //ui.notifications.info(`${actor.name} rolled ${flavor}: ${roll.total}`);

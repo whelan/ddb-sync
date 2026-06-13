@@ -1,4 +1,5 @@
 import { IRollHandler } from '../interfaces/IRollHandler.js';
+import { RollModePolicy } from '../RollModePolicy.js';
 
 /**
  * Ability Check Roll Handler
@@ -132,7 +133,7 @@ export class AbilityCheckRollHandler extends IRollHandler {
 
     const speaker = ChatMessage.getSpeaker({ actor });
     if (typeof roll.toMessage === 'function')
-      await roll.toMessage({ flavor, speaker });
+      await roll.toMessage({ flavor, speaker }, RollModePolicy.messageOptions(rollData));
 
     this.logger.log(`DDB Sync | ${flavor} rolled: ${roll.total} for ${actor.name}`);
   }
@@ -180,7 +181,7 @@ export class AbilityCheckRollHandler extends IRollHandler {
 
     const speaker = ChatMessage.getSpeaker({ actor });
     if (typeof roll.toMessage === 'function')
-      await roll.toMessage({ flavor, speaker });
+      await roll.toMessage({ flavor, speaker }, RollModePolicy.messageOptions(rollData));
 
     this.logger.log(`DDB Sync | ${flavor} rolled: ${roll.total} for ${actor.name}`);
   }
