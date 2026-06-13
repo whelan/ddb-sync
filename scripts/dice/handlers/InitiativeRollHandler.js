@@ -1,4 +1,5 @@
 import { IRollHandler } from '../interfaces/IRollHandler.js';
+import { RollModePolicy } from '../RollModePolicy.js';
 
 /**
  * Initiative Roll Handler
@@ -58,11 +59,11 @@ export class InitiativeRollHandler extends IRollHandler {
     if (initiativeBuild.isAdvantage) { 
       flavor += ' (Advantage)';
     }
-    else if (initiativeBuild.isDisadvantage) { 
+    else if (initiativeBuild.isDisadvantage) {
       flavor += ' (Disadvantage)';
     }
 
-    await roll.toMessage({ flavor, speaker });
+    await roll.toMessage({ flavor, speaker }, RollModePolicy.messageOptions(rollData));
 
     this.logger.log(`DDB Sync | Processed Initiative roll for ${actor.name}`);
 
