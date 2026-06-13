@@ -63,7 +63,8 @@ export class InitiativeRollHandler extends IRollHandler {
       flavor += ' (Disadvantage)';
     }
 
-    await roll.toMessage({ flavor, speaker }, RollModePolicy.messageOptions(rollData));
+    if (typeof roll.toMessage === 'function')
+      await roll.toMessage({ flavor, speaker }, RollModePolicy.messageOptions(rollData));
 
     this.logger.log(`DDB Sync | Processed Initiative roll for ${actor.name}`);
 
