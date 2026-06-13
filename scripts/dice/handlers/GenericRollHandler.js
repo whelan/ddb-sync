@@ -1,4 +1,5 @@
 import { IRollHandler } from '../interfaces/IRollHandler.js';
+import { RollModePolicy } from '../RollModePolicy.js';
 
 /**
  * Generic Roll Handler
@@ -55,11 +56,11 @@ export class GenericRollHandler extends IRollHandler {
       if (buildFormula.isAdvantage) { 
         flavor += ' (Advantage)';
       }
-      else if (buildFormula.isDisadvantage) { 
+      else if (buildFormula.isDisadvantage) {
         flavor += ' (Disadvantage)';
       }
 
-      await roll.toMessage({ flavor, speaker });
+      await roll.toMessage({ flavor, speaker }, RollModePolicy.messageOptions(rollData));
 
       this.logger.log(`DDB Sync | Processed ${rollType} roll for ${actor.name}`);
   }
