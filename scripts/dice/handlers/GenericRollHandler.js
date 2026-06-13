@@ -60,7 +60,8 @@ export class GenericRollHandler extends IRollHandler {
         flavor += ' (Disadvantage)';
       }
 
-      await roll.toMessage({ flavor, speaker }, RollModePolicy.messageOptions(rollData));
+      if (typeof roll.toMessage === 'function')
+        await roll.toMessage({ flavor, speaker }, RollModePolicy.messageOptions(rollData));
 
       this.logger.log(`DDB Sync | Processed ${rollType} roll for ${actor.name}`);
   }
