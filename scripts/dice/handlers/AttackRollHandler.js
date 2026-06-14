@@ -70,7 +70,7 @@ export class AttackRollHandler extends IRollHandler {
       // Post directly to chat (no dialog)
       const speaker = ChatMessage.getSpeaker({ actor });
       if (typeof roll.toMessage === 'function') {
-        await roll.toMessage({ flavor, speaker }, RollModePolicy.messageOptions(rollData));
+        await roll.toMessage({ flavor, speaker }, RollModePolicy.messageOptions(actor));
       }
 
       this.logger.log(`DDB Sync | ${flavor} → Total: ${roll.total} for ${actor.name}`);

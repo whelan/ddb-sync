@@ -7,93 +7,41 @@
  */
 
 class RollModePolicy {
-  static logger = console;
-
-  static messageOptions(rollData) {
-    const rollerUserId = rollData?.rollerUserId;
-    if (rollerUserId === null || rollerUserId === undefined) {
-      this.logger.warn('DDB Sync | Roll arrived without a roller userId; posting publicly');
+  static messageOptions(actor) {
+    // Player-owned actors always post publicly; GM-only actors (NPCs,
+    // monsters, the GM's own characters) follow the GM's roll-mode dropdown.
+    if (actor?.hasPlayerOwner) {
       return { rollMode: 'publicroll' };
     }
-    const ownUserId = game.settings.get('ddb-sync', 'userId');
-    if (ownUserId && String(rollerUserId) === String(ownUserId)) {
-      // GM's own roll: let Foundry apply the current core.rollMode dropdown
-      return {};
-    }
-    return { rollMode: 'publicroll' };
+    return {};
   }
 }
 
 describe('RollModePolicy', () => {
-  beforeEach(() => {
-    global.game = {
-      settings: {
-        get: jest.fn().mockReturnValue('1111111')
-      }
-    };
-    RollModePolicy.logger = { warn: jest.fn() };
-  });
-
-  afterEach(() => {
-    delete global.game;
-    RollModePolicy.logger = console;
-  });
-
   describe('messageOptions', () => {
-    it('returns {} when the roller is the configured DDB user (string id)', () => {
-      const result = RollModePolicy.messageOptions({ rollerUserId: '1111111' });
-      expect(result).toEqual({});
-    });
-
-    it('returns {} when the roller id is a number and the setting is a string', () => {
-      const result = RollModePolicy.messageOptions({ rollerUserId: 1111111 });
-      expect(result).toEqual({});
-    });
-
-    it('forces publicroll for a different DDB user', () => {
-      const result = RollModePolicy.messageOptions({ rollerUserId: '2222222' });
+    it('forces publicroll for a player-owned actor', () => {
+      const result = RollModePolicy.messageOptions({ hasPlayerOwner: true });
       expect(result).toEqual({ rollMode: 'publicroll' });
     });
 
-    it('forces publicroll and warns when rollerUserId is missing', () => {
+    it('returns {} for a GM-only actor (no player owner)', () => {
+      const result = RollModePolicy.messageOptions({ hasPlayerOwner: false });
+      expect(result).toEqual({});
+    });
+
+    it('returns {} when hasPlayerOwner is missing from the actor', () => {
       const result = RollModePolicy.messageOptions({});
-      expect(result).toEqual({ rollMode: 'publicroll' });
-      expect(RollModePolicy.logger.warn).toHaveBeenCalledTimes(1);
+      expect(result).toEqual({});
     });
 
-    it('forces publicroll and warns when rollerUserId is null', () => {
-      const result = RollModePolicy.messageOptions({ rollerUserId: null });
-      expect(result).toEqual({ rollMode: 'publicroll' });
-      expect(RollModePolicy.logger.warn).toHaveBeenCalledTimes(1);
+    it('returns {} when the actor is null', () => {
+      const result = RollModePolicy.messageOptions(null);
+      expect(result).toEqual({});
     });
 
-    it('forces publicroll and warns when rollData itself is undefined', () => {
+    it('returns {} when the actor is undefined', () => {
       const result = RollModePolicy.messageOptions(undefined);
-      expect(result).toEqual({ rollMode: 'publicroll' });
-      expect(RollModePolicy.logger.warn).toHaveBeenCalledTimes(1);
-    });
-
-    it('forces publicroll when the userId setting is empty', () => {
-      global.game.settings.get.mockReturnValue('');
-      const result = RollModePolicy.messageOptions({ rollerUserId: '1111111' });
-      expect(result).toEqual({ rollMode: 'publicroll' });
-      expect(RollModePolicy.logger.warn).not.toHaveBeenCalled();
-    });
-
-    it('forces publicroll when both the setting and rollerUserId are empty strings', () => {
-      global.game.settings.get.mockReturnValue('');
-      const result = RollModePolicy.messageOptions({ rollerUserId: '' });
-      expect(result).toEqual({ rollMode: 'publicroll' });
-    });
-
-    it('reads the userId setting from the ddb-sync module', () => {
-      RollModePolicy.messageOptions({ rollerUserId: '1111111' });
-      expect(global.game.settings.get).toHaveBeenCalledWith('ddb-sync', 'userId');
-    });
-
-    it('does not warn for a normal player roll', () => {
-      RollModePolicy.messageOptions({ rollerUserId: '2222222' });
-      expect(RollModePolicy.logger.warn).not.toHaveBeenCalled();
+      expect(result).toEqual({});
     });
   });
 });

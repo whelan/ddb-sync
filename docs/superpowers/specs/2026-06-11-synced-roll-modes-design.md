@@ -3,6 +3,16 @@
 **Date:** 2026-06-11
 **Target:** Foundry VTT v13 (The Forge), dnd5e, ddb-sync module
 
+> **Revision 2026-06-14 — discriminator changed from DDB userId to Foundry actor ownership.**
+> Forge testing showed the original assumption was wrong for the user's workflow: the
+> GM rolls every character from a single DDB account, so the game-log envelope `userId`
+> is identical for every roll and cannot distinguish a player-character roll from the
+> GM's own. The policy now keys off `actor.hasPlayerOwner` instead: rolls for
+> player-owned actors are always public; rolls for GM-only actors (NPCs, monsters, the
+> GM's own characters) follow the GM's roll-mode dropdown. The websocket no longer
+> needs to carry `rollerUserId`. The sections below describe the original userId design;
+> the live behavior is the ownership rule. See `scripts/dice/RollModePolicy.js`.
+
 ## Problem
 
 All rolls synced from D&D Beyond are posted to Foundry chat by the GM's client via
