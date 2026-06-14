@@ -56,7 +56,7 @@ export class DamageRollHandler extends IRollHandler {
 
     const speaker = ChatMessage.getSpeaker({ actor });
     if (typeof roll.toMessage === 'function') {
-      await roll.toMessage({ flavor, speaker }, RollModePolicy.messageOptions(rollData));
+      await roll.toMessage({ flavor, speaker }, RollModePolicy.messageOptions(actor));
     }
 
     this.logger.log(`DDB Sync | ${flavor} rolled: ${roll.total} for ${actor?.name}`);

@@ -61,7 +61,7 @@ export class GenericRollHandler extends IRollHandler {
       }
 
       if (typeof roll.toMessage === 'function')
-        await roll.toMessage({ flavor, speaker }, RollModePolicy.messageOptions(rollData));
+        await roll.toMessage({ flavor, speaker }, RollModePolicy.messageOptions(actor));
 
       this.logger.log(`DDB Sync | Processed ${rollType} roll for ${actor.name}`);
   }
