@@ -3,9 +3,11 @@
  * Responsibility: Create Foundry rolls with DDB dice results
  * SOLID: Single Responsibility - only builds and evaluates rolls
  */
+import { Logger } from '../utils/Logger.js';
+
 export class RollBuilder {
   constructor() {
-    this.logger = console;
+    this.logger = Logger;
   }
 
   /**
@@ -17,7 +19,8 @@ export class RollBuilder {
   async buildRollWithDDBResults(formula, ddbDiceResults) {
     try {
       const roll = new Roll(formula);
-      await roll.evaluate();
+      // minimize: true skips real RNG — results are overwritten by DDB values anyway
+      await roll.evaluate({ minimize: true });
 
       // Substitute DDB dice results into the roll
       this.substituteDDBResults(roll, ddbDiceResults);

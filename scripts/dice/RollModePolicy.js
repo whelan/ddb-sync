@@ -31,4 +31,13 @@ export class RollModePolicy {
     }
     return {};
   }
+
+  /**
+   * Suppress the Dice So Nice! animation for the next roll.toMessage() call.
+   * DDB already showed the dice rolling; re-animating in Foundry adds ~1-3s
+   * of visual latency before the result becomes readable in chat.
+   */
+  static suppressAnimation() {
+    game.dice3d?.suppressForCurrentUser?.();
+  }
 }

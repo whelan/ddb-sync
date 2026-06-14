@@ -15,6 +15,10 @@ class RollModePolicy {
     }
     return {};
   }
+
+  static suppressAnimation() {
+    // game.dice3d?.suppressForCurrentUser?.() — no-op in tests (no Foundry globals)
+  }
 }
 
 describe('RollModePolicy', () => {
@@ -42,6 +46,12 @@ describe('RollModePolicy', () => {
     it('returns {} when the actor is undefined', () => {
       const result = RollModePolicy.messageOptions(undefined);
       expect(result).toEqual({});
+    });
+  });
+
+  describe('suppressAnimation', () => {
+    it('does not throw when called without Foundry globals', () => {
+      expect(() => RollModePolicy.suppressAnimation()).not.toThrow();
     });
   });
 });

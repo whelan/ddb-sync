@@ -1,4 +1,5 @@
 import { IMessageHandler } from '../interfaces/IMessageHandler.js';
+import { Logger } from '../../utils/Logger.js';
 
 /**
  * Dice Roll Message Handler
@@ -9,7 +10,7 @@ import { IMessageHandler } from '../interfaces/IMessageHandler.js';
 export class DiceRollMessageHandler extends IMessageHandler {
   constructor(characterMapper = null, diceRollHandler = null) {
     super();
-    this.logger = console;
+    this.logger = Logger;
     this.characterMapper = characterMapper;
     this.diceRollHandler = diceRollHandler;
     // Subscribers waiting for specific roll types

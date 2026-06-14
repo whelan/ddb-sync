@@ -1,4 +1,6 @@
 // WebSocket connection handler for D&D Beyond
+import { Logger } from '../utils/Logger.js';
+
 export class DDBWebSocket extends EventTarget {
   constructor(cobaltCookie, campaignId, userId, proxyUrl, proxyUser = null, proxyPass = null) {
     super();
@@ -138,7 +140,7 @@ export class DDBWebSocket extends EventTarget {
   onMessage(event) {
     try {
       const message = JSON.parse(event.data);
-      console.log('DDB Sync | Message received:', message);
+      Logger.log('DDB Sync | Message received:', message);
 
       // Handle different message types
       switch (message.eventType) {

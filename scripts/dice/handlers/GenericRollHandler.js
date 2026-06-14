@@ -1,5 +1,6 @@
 import { IRollHandler } from '../interfaces/IRollHandler.js';
 import { RollModePolicy } from '../RollModePolicy.js';
+import { Logger } from '../../utils/Logger.js';
 
 /**
  * Generic Roll Handler
@@ -12,7 +13,7 @@ export class GenericRollHandler extends IRollHandler {
     super();
     this.diceExtractor = diceExtractor;
     this.rollBuilder = rollBuilder;
-    this.logger = console;
+    this.logger = Logger;
   }
 
   /**
@@ -60,8 +61,10 @@ export class GenericRollHandler extends IRollHandler {
         flavor += ' (Disadvantage)';
       }
 
-      if (typeof roll.toMessage === 'function')
+      if (typeof roll.toMessage === 'function') {
+        RollModePolicy.suppressAnimation();
         await roll.toMessage({ flavor, speaker }, RollModePolicy.messageOptions(actor));
+      }
 
       this.logger.log(`DDB Sync | Processed ${rollType} roll for ${actor.name}`);
   }

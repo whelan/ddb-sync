@@ -1,6 +1,7 @@
 import { DiceExtractor } from './DiceExtractor.js';
 import { RollBuilder } from './RollBuilder.js';
 import { RollStrategyDispatcher } from './RollStrategyDispatcher.js';
+import { Logger } from '../utils/Logger.js';
 
 /**
  * Dice Roll Handler - Refactored using SOLID principles
@@ -12,7 +13,7 @@ export class DiceRollHandler {
     this.diceExtractor = new DiceExtractor();
     this.rollBuilder = new RollBuilder();
     this.rollStrategyDispatcher = new RollStrategyDispatcher();
-    this.logger = console;
+    this.logger = Logger;
   }
 
   /**

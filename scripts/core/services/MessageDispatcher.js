@@ -4,10 +4,12 @@
  * SOLID: Open/Closed - can add new handlers without modifying this class
  * Pattern: Chain of Responsibility
  */
+import { Logger } from '../../utils/Logger.js';
+
 export class MessageDispatcher {
   constructor() {
     this.handlers = [];
-    this.logger = console;
+    this.logger = Logger;
   }
 
   /**

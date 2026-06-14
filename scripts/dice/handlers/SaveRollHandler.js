@@ -1,5 +1,6 @@
 import { IRollHandler } from '../interfaces/IRollHandler.js';
 import { RollModePolicy } from '../RollModePolicy.js';
+import { Logger } from '../../utils/Logger.js';
 
 /**
  * Save Roll Handler
@@ -12,8 +13,8 @@ export class SaveRollHandler extends IRollHandler {
     super();
     this.diceExtractor = diceExtractor;
     this.rollBuilder = rollBuilder;
-    this.logger = console;
-    
+    this.logger = Logger;
+
     // Map DDB ability names to Foundry ability abbreviations
     this.abilityMap = {
       'strength': 'str',
@@ -97,8 +98,10 @@ export class SaveRollHandler extends IRollHandler {
     }
 
     const speaker = ChatMessage.getSpeaker({ actor });
-    if (typeof roll.toMessage === 'function')
+    if (typeof roll.toMessage === 'function') {
+      RollModePolicy.suppressAnimation();
       await roll.toMessage({ flavor, speaker }, RollModePolicy.messageOptions(actor));
+    }
 
     
     //ui.notifications.info(`${actor.name} rolled ${flavor}: ${roll.total}`);

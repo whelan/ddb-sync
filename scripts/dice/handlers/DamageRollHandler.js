@@ -1,5 +1,6 @@
 import { IRollHandler } from '../interfaces/IRollHandler.js';
 import { RollModePolicy } from '../RollModePolicy.js';
+import { Logger } from '../../utils/Logger.js';
 
 /**
  * Damage Roll Handler
@@ -16,7 +17,7 @@ export class DamageRollHandler extends IRollHandler {
     super();
     this.diceExtractor = diceExtractor;
     this.rollBuilder = rollBuilder;
-    this.logger = console;
+    this.logger = Logger;
   }
 
   /**
@@ -56,6 +57,7 @@ export class DamageRollHandler extends IRollHandler {
 
     const speaker = ChatMessage.getSpeaker({ actor });
     if (typeof roll.toMessage === 'function') {
+      RollModePolicy.suppressAnimation();
       await roll.toMessage({ flavor, speaker }, RollModePolicy.messageOptions(actor));
     }
 

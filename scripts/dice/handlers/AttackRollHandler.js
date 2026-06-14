@@ -1,6 +1,7 @@
 import { IRollHandler } from '../interfaces/IRollHandler.js';
 import { DDBRollInjector } from '../../core/overrides/DDBRollInjector.js';
 import { RollModePolicy } from '../RollModePolicy.js';
+import { Logger } from '../../utils/Logger.js';
 
 /**
  * Attack Roll Handler
@@ -16,7 +17,7 @@ export class AttackRollHandler extends IRollHandler {
     super();
     this.diceExtractor = diceExtractor;
     this.rollBuilder = rollBuilder;
-    this.logger = console;
+    this.logger = Logger;
   }
 
   canHandle(rollData) {
@@ -70,6 +71,7 @@ export class AttackRollHandler extends IRollHandler {
       // Post directly to chat (no dialog)
       const speaker = ChatMessage.getSpeaker({ actor });
       if (typeof roll.toMessage === 'function') {
+        RollModePolicy.suppressAnimation();
         await roll.toMessage({ flavor, speaker }, RollModePolicy.messageOptions(actor));
       }
 

@@ -54,11 +54,12 @@ export class DDBSyncManager {
    * SOLID: Open/Closed - easy to add new handlers without modifying this code
    */
   registerHandlers() {
+    // DiceRollMessageHandler first: dice/roll/fulfilled is the hot path,
+    // so it should win the canHandle scan before DamageMessageHandler is checked.
+    this.messageDispatcher.registerHandler(this.diceRollMessageHandler);
+
     const damageHandler = new DamageMessageHandler(this.damageSyncService);
     this.messageDispatcher.registerHandler(damageHandler);
-
-    // Register dice roll handler for DDB dice mode
-    this.messageDispatcher.registerHandler(this.diceRollMessageHandler);
   }
 
   /**

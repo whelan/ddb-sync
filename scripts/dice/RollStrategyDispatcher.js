@@ -4,10 +4,12 @@
  * SOLID: Single Responsibility - only routes rolls; Open/Closed - add handlers without modifying
  * Pattern: Strategy - selects strategy based on roll type
  */
+import { Logger } from '../utils/Logger.js';
+
 export class RollStrategyDispatcher {
   constructor() {
     this.handlers = [];
-    this.logger = console;
+    this.logger = Logger;
   }
 
   /**

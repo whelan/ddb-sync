@@ -4,6 +4,7 @@
  * SOLID: Single Responsibility - only handles settings registration
  */
 import { CharacterMappingApplication } from '../ui/CharacterMappingApplication.js';
+import { Logger } from '../utils/Logger.js';
 
 export class SettingsRegistry {
   static MODULE_ID = 'ddb-sync';
@@ -105,6 +106,16 @@ export class SettingsRegistry {
   }
 
   static registerSyncSettings() {
+    game.settings.register(this.MODULE_ID, 'debugMode', {
+      name: 'Debug Logging',
+      hint: 'Log detailed roll info to the browser console. Disable for best performance at the table.',
+      scope: 'client',
+      config: true,
+      type: Boolean,
+      default: false,
+      onChange: () => Logger.invalidateCache()
+    });
+
     // Update character damage only
     game.settings.register(this.MODULE_ID, 'updateDamageOnly', {
       name: 'DDB.Settings.UpdateDamageOnly.Name',
