@@ -1,3 +1,5 @@
+import { Logger } from '../utils/Logger.js';
+
 /**
  * Dice Extractor Service
  * Responsibility: Parse DDB dice results from roll data
@@ -5,7 +7,7 @@
  */
 export class DiceExtractor {
   constructor() {
-    this.logger = console;
+    this.logger = Logger;
   }
   /**
    * Extract dice results from DDB roll data
@@ -72,13 +74,8 @@ export class DiceExtractor {
       for (const dieSet of roll.diceNotation.set) {
         const dieType = dieSet.dieType || 'd6';
         
-        // Get actual dice count from result values if available, otherwise from dieSet
+        // Use the actual number of dice sent by DDB (covers both advantage 2-die and normal 1-die)
         let count = dieSet.dice?.length || dieSet.count || 1;
-        
-        // Also check result.values for d20 rolls to get accurate count
-        if (dieType === 'd20' && roll.result?.values) {
-          count = roll.result.values.length;
-        }
 
         // Build the dice term with Foundry syntax for advantage/disadvantage
         let term = `${count}${dieType}`;
