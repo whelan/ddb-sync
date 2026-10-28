@@ -56,6 +56,11 @@ export class DDBRollInjector {
     }
   }
 
+  /** Drop any pending DDB dice (e.g. when the system roll it was meant for never happened). */
+  static clearPending() {
+    this._pending = null;
+  }
+
   /** TEST HELPER: force the next d20 (or dN) to a fixed value. Use from console. */
   static testInject(value, faces = 20) {
     this._pending = { dice: [{ dieType: `d${faces}`, results: [value] }], rollKind: '', ts: Date.now() };
