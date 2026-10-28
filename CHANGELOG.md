@@ -1,3 +1,6 @@
+# 0.0.15
+- Death saving throws rolled on D&D Beyond now show up in Foundry. They were sent as a "save" with action "Death", which the saving-throw handler couldn't map to an ability and dropped. They now go through dnd5e's own death save roll with the D&D Beyond dice, so the actor's death save successes/failures (and nat 1 / nat 20) update in Foundry too.
+
 # 0.0.14
 - Conditions set on a D&D Beyond character sheet now sync to the mapped Foundry actor, including exhaustion levels. Conditions cleared on D&D Beyond are cleared in Foundry. Only the 15 core 5e conditions are touched; other status effects (concentration, GM markers, other modules') are left alone. New world setting: `Update Character Conditions From D&D Beyond` (on by default).
 - Character updates are now handled by one `CharacterUpdateMessageHandler` that fetches the character from the proxy once and feeds every sync service (HP, conditions), instead of one fetch per sync. Replaces `DamageMessageHandler`.

@@ -15,6 +15,7 @@ import { DamageRollHandler } from '../dice/handlers/DamageRollHandler.js';
 import { MessageDeduplicator } from '../websocket/MessageDeduplicator.js';
 import { DiceInputDialog } from '../ui/DiceInputDialog.js';
 import { SaveRollHandler } from '../dice/handlers/SaveRollHandler.js';
+import { DeathSaveRollHandler } from '../dice/handlers/DeathSaveRollHandler.js';
 import { AbilityCheckRollHandler } from '../dice/handlers/AbilityCheckRollHandler.js';
 import { AttackRollHandler } from '../dice/handlers/AttackRollHandler.js';
 
@@ -85,30 +86,35 @@ export class DDBSyncManager {
       new InitiativeRollHandler(diceExtractor, rollBuilder)
     );
 
-    // 2. Saving throws — rollType === "save"
+    // 2. Death saves — action === "Death" (rollType "save"), so before SaveRollHandler
+    this.diceRollHandler.registerRollHandler(
+      new DeathSaveRollHandler(diceExtractor, rollBuilder)
+    );
+
+    // 3. Saving throws — rollType === "save"
     this.diceRollHandler.registerRollHandler(
       new SaveRollHandler(diceExtractor, rollBuilder)
     );
 
-    // 3. Attack rolls — rollType === "to hit"
-    //    Creates usage card + D20Roll, stores usageId for step 4
+    // 4. Attack rolls — rollType === "to hit"
+    //    Creates usage card + D20Roll, stores usageId for step 5
     this.diceRollHandler.registerRollHandler(
       new AttackRollHandler(diceExtractor, rollBuilder)
     );
 
-    // 4. Damage rolls — rollType === "damage"
+    // 5. Damage rolls — rollType === "damage"
     //    Reads usageId stored by AttackRollHandler, creates DamageRoll linked to usage card
     //    MUST come before GenericRollHandler or damage rolls fall through to the generic handler
     this.diceRollHandler.registerRollHandler(
       new DamageRollHandler(diceExtractor, rollBuilder)
     );
 
-    // 5. Ability checks and skill checks — rollType === "check"
+    // 6. Ability checks and skill checks — rollType === "check"
     this.diceRollHandler.registerRollHandler(
       new AbilityCheckRollHandler(diceExtractor, rollBuilder)
     );
 
-    // 6. Generic fallback — canHandle() returns true for everything
+    // 7. Generic fallback — canHandle() returns true for everything
     //    Must always be last
     this.diceRollHandler.registerRollHandler(
       new GenericRollHandler(diceExtractor, rollBuilder)
