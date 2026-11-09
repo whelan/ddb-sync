@@ -189,18 +189,16 @@ export class SpellCardService {
 
     if (typeof spell.displayCard === 'function') {
       try {
-        const result = await spell.displayCard({ create: false });
-        // dnd5e returns plain message data with create: false ...
-        if (result && typeof result === 'object' && typeof result.setFlag !== 'function' && result.content) {
-          delete result.create;
-          result.flags = foundry.utils.mergeObject(result.flags ?? {}, flags);
-          return await ChatMessage.create(result, options);
-        }
-        // ... but a version that ignores the option posts the card itself.
-        if (typeof result?.setFlag === 'function') {
-          await result.setFlag(SpellCardService.MODULE_ID, 'spellCard', flags[SpellCardService.MODULE_ID].spellCard);
-          return result;
-        }
+        // dnd5e (5.x and 6.x) merges `flags` into the card and applies `rollMode`
+        // itself before creating the message. Letting it create the card keeps
+        // the system's own rendering: 6.x stores card data in `system` and has
+        // no `content`, so building the message ourselves would lose the card.
+        const config = { flags };
+        if (options.rollMode) config.rollMode = options.rollMode;
+        const result = await spell.displayCard(config);
+        if (result) return result;
+        // A preDisplayCard hook returned false: respect it, post nothing.
+        return null;
       } catch (err) {
         this.logger.warn('DDB Sync | dnd5e displayCard failed, using fallback card:', err);
       }
