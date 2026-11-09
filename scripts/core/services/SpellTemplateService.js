@@ -12,7 +12,8 @@ import { Logger } from '../../utils/Logger.js';
  * owners. Placement goes through dnd5e's own AbilityTemplate preview, so it
  * snaps and measures exactly like casting from the sheet.
  *
- * Templates placed this way are flagged with the combat state at creation:
+ * Areas placed this way (Regions on Foundry v14, MeasuredTemplates on v13)
+ * are flagged with the combat state at creation:
  * flags['ddb-sync'].spellTemplate = { combatId, round, turn }. On every
  * combat update the active GM deletes the flagged templates whose time is up,
  * according to the world setting `spellTemplateCleanup` (never/turn/round).
@@ -140,21 +141,50 @@ export class SpellTemplateService {
   }
 
   /**
-   * Preview and place the spell's template(s) with dnd5e's AbilityTemplate.
+   * Combat state stamped on a placed template so cleanup knows when it expires.
+   * @returns {{combatId: string|null, round: number, turn: number}}
+   */
+  static combatStamp() {
+    const combat = game.combat;
+    return {
+      combatId: combat?.started ? combat.id : null,
+      round: combat?.round ?? 0,
+      turn: combat?.turn ?? 0
+    };
+  }
+
+  /**
+   * Let the user place the spell's area with the system's own placement tool.
+   *
+   * dnd5e 6 (Foundry v14) places areas as Regions through
+   * `dnd5e.canvas.TemplatePlacement.fromActivity`, which awaits the placement
+   * and creates the regions with `createData` merged in - so our flag rides
+   * along. dnd5e 5 (Foundry v13) uses the older AbilityTemplate preview and
+   * MeasuredTemplates; that path is kept as a fallback.
    * @param {Item} item
    */
   static async placeTemplate(item) {
     const info = this.templateInfo(item);
-    const AbilityTemplate = globalThis.dnd5e?.canvas?.AbilityTemplate;
-    if (!info || !AbilityTemplate || !canvas?.scene) {
+    const canvasApi = globalThis.dnd5e?.canvas;
+    if (!info || !canvasApi || !canvas?.scene) {
       ui.notifications?.warn(game.i18n.localize('DDB.SpellTemplate.Unavailable'));
       return;
     }
+    const flags = { [this.MODULE_ID]: { spellTemplate: this.combatStamp() } };
 
+    // dnd5e 6+: Regions
+    const TemplatePlacement = canvasApi.TemplatePlacement;
+    if (info.activity && typeof TemplatePlacement?.fromActivity === 'function') {
+      await TemplatePlacement.fromActivity(info.activity, { createData: { flags } });
+      return;
+    }
+
+    // dnd5e 5: MeasuredTemplates
+    const AbilityTemplate = canvasApi.AbilityTemplate;
     let created = null;
-    if (info.activity && typeof AbilityTemplate.fromActivity === 'function') {
+    if (info.activity && typeof AbilityTemplate?.fromActivity === 'function') {
       created = AbilityTemplate.fromActivity(info.activity);
-    } else if (typeof AbilityTemplate.fromItem === 'function') {
+    } else if (typeof AbilityTemplate?.fromItem === 'function') {
       created = AbilityTemplate.fromItem(item);
     }
     const templates = [created].flat().filter(Boolean);
@@ -162,15 +192,8 @@ export class SpellTemplateService {
       ui.notifications?.warn(game.i18n.localize('DDB.SpellTemplate.Unavailable'));
       return;
     }
-
-    const combat = game.combat;
-    const spellTemplate = {
-      combatId: combat?.started ? combat.id : null,
-      round: combat?.round ?? 0,
-      turn: combat?.turn ?? 0
-    };
     for (const template of templates) {
-      template.document?.updateSource?.({ flags: { [this.MODULE_ID]: { spellTemplate } } });
+      template.document?.updateSource?.({ flags });
       await template.drawPreview();
     }
   }
@@ -190,17 +213,21 @@ export class SpellTemplateService {
     } catch { /* setting not registered yet */ }
     if (mode === 'never') return;
 
+    const expired = (doc) => {
+      const flag = doc.getFlag?.(this.MODULE_ID, 'spellTemplate');
+      if (ended) return !!flag && flag.combatId === combat.id;
+      return this.shouldDeleteTemplate(flag, { id: combat.id, round: combat.round, turn: combat.turn }, mode);
+    };
+
     for (const scene of game.scenes ?? []) {
-      const ids = scene.templates
-        .filter((t) => {
-          const flag = t.getFlag(this.MODULE_ID, 'spellTemplate');
-          if (ended) return flag?.combatId === combat.id;
-          return this.shouldDeleteTemplate(flag, { id: combat.id, round: combat.round, turn: combat.turn }, mode);
-        })
-        .map((t) => t.id);
-      if (ids.length) {
-        await scene.deleteEmbeddedDocuments('MeasuredTemplate', ids);
-        Logger.log(`DDB Sync | Removed ${ids.length} expired spell template(s) from ${scene.name}`);
+      // Regions (Foundry v14 / dnd5e 6) and MeasuredTemplates (v13 / dnd5e 5)
+      for (const [collection, documentName] of [['regions', 'Region'], ['templates', 'MeasuredTemplate']]) {
+        const docs = scene[collection];
+        if (!docs) continue;
+        const ids = docs.filter(expired).map((d) => d.id);
+        if (!ids.length) continue;
+        await scene.deleteEmbeddedDocuments(documentName, ids);
+        Logger.log(`DDB Sync | Removed ${ids.length} expired spell area(s) from ${scene.name}`);
       }
     }
   }

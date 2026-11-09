@@ -194,7 +194,7 @@ export class SpellCardService {
         // the system's own rendering: 6.x stores card data in `system` and has
         // no `content`, so building the message ourselves would lose the card.
         const config = { flags };
-        if (options.rollMode) config.rollMode = options.rollMode;
+        if (options.rollMode) config.rollMode = SpellCardService.messageMode(options.rollMode);
         const result = await spell.displayCard(config);
         if (result) return result;
         // A preDisplayCard hook returned false: respect it, post nothing.
@@ -209,6 +209,17 @@ export class SpellCardService {
       speaker: ChatMessage.getSpeaker({ actor }),
       flags
     }, options);
+  }
+
+  /**
+   * Foundry v14 renamed roll modes to message modes ("publicroll" -> "public").
+   * @param {string} rollMode - v13 roll mode from RollModePolicy
+   * @returns {string}
+   */
+  static messageMode(rollMode) {
+    const generation = Number(game.release?.generation) || 13;
+    if (generation < 14) return rollMode;
+    return { publicroll: 'public', gmroll: 'gm', blindroll: 'blind', selfroll: 'self' }[rollMode] ?? rollMode;
   }
 
   /**
