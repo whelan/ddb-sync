@@ -135,6 +135,25 @@ export class SettingsRegistry {
       type: Boolean,
       default: true
     });
+
+    // Announce spell slots spent on D&D Beyond in chat
+    game.settings.register(this.MODULE_ID, 'notifySpellSlots', {
+      name: 'DDB.Settings.NotifySpellSlots.Name',
+      hint: 'DDB.Settings.NotifySpellSlots.Hint',
+      scope: 'world',
+      config: true,
+      type: Boolean,
+      default: true
+    });
+
+    game.settings.register(this.MODULE_ID, 'notifySpellSlotsGmOnly', {
+      name: 'DDB.Settings.NotifySpellSlotsGmOnly.Name',
+      hint: 'DDB.Settings.NotifySpellSlotsGmOnly.Hint',
+      scope: 'world',
+      config: true,
+      type: Boolean,
+      default: false
+    });
   }
 
   static registerDataSettings() {

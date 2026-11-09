@@ -4,6 +4,7 @@ import { WebSocketManager } from './services/WebSocketManager.js';
 import { CharacterDataService } from './services/CharacterDataService.js';
 import { DamageSyncService } from './services/DamageSyncService.js';
 import { ConditionSyncService } from './services/ConditionSyncService.js';
+import { SpellSlotNotifier } from './services/SpellSlotNotifier.js';
 import { MessageDispatcher } from './services/MessageDispatcher.js';
 import { CharacterUpdateMessageHandler } from './handlers/CharacterUpdateMessageHandler.js';
 import { DiceRollMessageHandler } from './handlers/DiceRollMessageHandler.js';
@@ -33,6 +34,7 @@ export class DDBSyncManager {
     this.characterDataService = new CharacterDataService();
     this.damageSyncService = new DamageSyncService();
     this.conditionSyncService = new ConditionSyncService();
+    this.spellSlotNotifier = new SpellSlotNotifier();
     this.messageDispatcher = new MessageDispatcher();
     this.websocketManager = null;
     this.messageDeduplicator = new MessageDeduplicator();
@@ -65,7 +67,7 @@ export class DDBSyncManager {
     const characterUpdateHandler = new CharacterUpdateMessageHandler(
       this.characterDataService,
       this.characterMapper,
-      [this.damageSyncService, this.conditionSyncService]
+      [this.damageSyncService, this.conditionSyncService, this.spellSlotNotifier]
     );
     this.messageDispatcher.registerHandler(characterUpdateHandler);
   }

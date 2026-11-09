@@ -22,5 +22,10 @@
   "DDB.Settings.UpdateDamageOnly.Hint": "When enabled, character damage from D&D Beyond will sync.",
 
   "DDB.Settings.SyncConditions.Name": "Update Character Conditions From D&D Beyond",
-  "DDB.Settings.SyncConditions.Hint": "When enabled, conditions a player sets on their D&D Beyond character sheet (including exhaustion levels) are applied to the mapped Foundry actor, and conditions removed on D&D Beyond are removed in Foundry. Only the 15 core 5e conditions are touched; other status effects are left alone."
+  "DDB.Settings.SyncConditions.Hint": "When enabled, conditions a player sets on their D&D Beyond character sheet (including exhaustion levels) are applied to the mapped Foundry actor, and conditions removed on D&D Beyond are removed in Foundry. Only the 15 core 5e conditions are touched; other status effects are left alone.",
+
+  "DDB.Settings.NotifySpellSlots.Name": "Announce Spells Cast on D&D Beyond in Chat",
+  "DDB.Settings.NotifySpellSlots.Hint": "Posts a chat message when a player spends a spell slot or pact magic slot on their D&D Beyond sheet. D&D Beyond only reports the slot level, not which spell; cantrips spend no slot and are not announced.",
+  "DDB.Settings.NotifySpellSlotsGmOnly.Name": "Spell Announcements to GM Only",
+  "DDB.Settings.NotifySpellSlotsGmOnly.Hint": "Whisper spell slot announcements to the GM instead of posting them publicly."
 }
