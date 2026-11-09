@@ -27,5 +27,15 @@
   "DDB.Settings.NotifySpellSlots.Name": "Announce Spells Cast on D&D Beyond in Chat",
   "DDB.Settings.NotifySpellSlots.Hint": "Posts a chat message when a player spends a spell slot or pact magic slot on their D&D Beyond sheet. D&D Beyond only reports the slot level, not which spell; cantrips spend no slot and are not announced.",
   "DDB.Settings.NotifySpellSlotsGmOnly.Name": "Spell Announcements to GM Only",
-  "DDB.Settings.NotifySpellSlotsGmOnly.Hint": "Whisper spell slot announcements to the GM instead of posting them publicly."
+  "DDB.Settings.NotifySpellSlotsGmOnly.Hint": "Whisper spell slot announcements to the GM instead of posting them publicly.",
+
+  "DDB.Settings.PostSpellCards.Name": "Post Spell Cards for D&D Beyond Spell Rolls",
+  "DDB.Settings.PostSpellCards.Hint": "When a D&D Beyond roll belongs to a spell on the mapped actor, post that spell's card to chat once per cast (attack and damage rolls share one card). Nothing is consumed or rolled. Spells with an area of effect get a Place template button for the GM and the actor's owner. While a card is shown, the separate spell slot announcement is skipped.",
+  "DDB.Settings.SpellTemplateCleanup.Name": "Remove Spell Templates in Combat",
+  "DDB.Settings.SpellTemplateCleanup.Hint": "When templates placed from a spell card are deleted during combat. Templates placed outside combat are never removed automatically.",
+  "DDB.Settings.SpellTemplateCleanup.Never": "Never",
+  "DDB.Settings.SpellTemplateCleanup.Turn": "At the next turn",
+  "DDB.Settings.SpellTemplateCleanup.Round": "At the next round",
+  "DDB.SpellTemplate.Place": "Place template",
+  "DDB.SpellTemplate.Unavailable": "DDB Sync: this spell's template cannot be placed (no active scene or dnd5e template support)."
 }

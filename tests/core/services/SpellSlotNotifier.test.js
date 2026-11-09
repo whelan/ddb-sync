@@ -7,8 +7,9 @@
  */
 
 class SpellSlotNotifier {
-  constructor() {
+  constructor({ recentlyAnnounced = null } = {}) {
     this.logger = { log: jest.fn() };
+    this.recentlyAnnounced = recentlyAnnounced;
     this.lastUsed = new Map();
   }
 
@@ -46,6 +47,10 @@ class SpellSlotNotifier {
 
     const spent = SpellSlotNotifier.spentSlots(previous, current);
     if (!spent.length) return;
+    if (this.recentlyAnnounced?.(actor.id)) {
+      this.logger.log(`DDB Sync | ${actor.name} slot spend already covered by a spell card`);
+      return;
+    }
 
     const lines = spent.map(({ pact, level, count }) =>
       `${count > 1 ? `${count}× ` : ''}level ${level} ${pact ? 'pact magic slot' : 'spell slot'}`
@@ -118,6 +123,20 @@ describe('SpellSlotNotifier', () => {
     await notifier.applyFromCharacter(actor, char([0]));
     await notifier.applyFromCharacter(actor, char([1]));
     expect(ChatMessage.create.mock.calls[0][0].whisper).toEqual(['gm1']);
+  });
+
+  it('skips the slot message when a spell card was just posted', async () => {
+    const recentlyAnnounced = jest.fn((id) => id === 'a1');
+    notifier = new SpellSlotNotifier({ recentlyAnnounced });
+    await notifier.applyFromCharacter(actor, char([0]));
+    await notifier.applyFromCharacter(actor, char([1]));
+    expect(recentlyAnnounced).toHaveBeenCalledWith('a1');
+    expect(ChatMessage.create).not.toHaveBeenCalled();
+    // baseline still advanced: the next spend without a card is announced once
+    recentlyAnnounced.mockReturnValue(false);
+    await notifier.applyFromCharacter(actor, char([2]));
+    expect(ChatMessage.create).toHaveBeenCalledTimes(1);
+    expect(ChatMessage.create.mock.calls[0][0].content).toContain('level 1 spell slot');
   });
 
   it('tracks characters separately', async () => {

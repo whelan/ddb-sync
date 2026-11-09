@@ -5,6 +5,7 @@ import { CharacterDataService } from './services/CharacterDataService.js';
 import { DamageSyncService } from './services/DamageSyncService.js';
 import { ConditionSyncService } from './services/ConditionSyncService.js';
 import { SpellSlotNotifier } from './services/SpellSlotNotifier.js';
+import { SpellCardService } from './services/SpellCardService.js';
 import { MessageDispatcher } from './services/MessageDispatcher.js';
 import { CharacterUpdateMessageHandler } from './handlers/CharacterUpdateMessageHandler.js';
 import { DiceRollMessageHandler } from './handlers/DiceRollMessageHandler.js';
@@ -34,7 +35,6 @@ export class DDBSyncManager {
     this.characterDataService = new CharacterDataService();
     this.damageSyncService = new DamageSyncService();
     this.conditionSyncService = new ConditionSyncService();
-    this.spellSlotNotifier = new SpellSlotNotifier();
     this.messageDispatcher = new MessageDispatcher();
     this.websocketManager = null;
     this.messageDeduplicator = new MessageDeduplicator();
@@ -43,8 +43,16 @@ export class DDBSyncManager {
     this.characterMapper = new CharacterMapper();
     this.diceRollHandler = new DiceRollHandler();
 
+    // Spell cards on spell rolls; the slot notifier stays quiet for a cast that already got a card
+    this.spellCardService = new SpellCardService({ characterMapper: this.characterMapper });
+    this.spellSlotNotifier = new SpellSlotNotifier({
+      recentlyAnnounced: (actorId) => this.spellCardService.recentlyAnnounced(actorId)
+    });
+
     // Initialize dice roll message handler (for DDB dice mode) with character mapper and dice roll handler
-    this.diceRollMessageHandler = new DiceRollMessageHandler(this.characterMapper, this.diceRollHandler);
+    this.diceRollMessageHandler = new DiceRollMessageHandler(
+      this.characterMapper, this.diceRollHandler, this.spellCardService
+    );
 
     // Initialize dice input dialog with handler injection
     this.diceInputDialog = new DiceInputDialog(this.diceRollMessageHandler);

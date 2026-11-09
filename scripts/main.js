@@ -4,10 +4,12 @@ import { DDBSyncManager } from './core/DDBSyncManager.js';
 import { RollEvaluationOverride } from './core/overrides/RollEvaluationOverride.js';
 import { DiceModeSelector } from './ui/DiceModeSelector.js';
 import { DDBRollInjector } from './core/overrides/DDBRollInjector.js';
+import { SpellTemplateService } from './core/services/SpellTemplateService.js';
 
 // Initialize on Foundry ready
 Hooks.once('init', () => {
-
+  // Every client: "Place template" button on spell cards, GM-side template cleanup
+  SpellTemplateService.registerHooks();
 });
 
 // Connect on Foundry ready if enabled

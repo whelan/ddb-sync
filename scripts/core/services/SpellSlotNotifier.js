@@ -13,11 +13,20 @@ import { Logger } from '../../utils/Logger.js';
  * baseline - otherwise every slot already spent would be announced at once.
  * DDB does not say which spell was cast, only the slot level; cantrips and
  * free casts spend no slot and are therefore not reported.
+ *
+ * When SpellCardService already posted the spell's card for this actor a
+ * moment ago, the slot message is skipped (the baseline is still updated).
  */
 export class SpellSlotNotifier extends ICharacterSync {
-  constructor() {
+  /**
+   * @param {Object} [options]
+   * @param {(actorId: string) => boolean} [options.recentlyAnnounced] - True if a
+   *   spell card was just posted for the actor
+   */
+  constructor({ recentlyAnnounced = null } = {}) {
     super();
     this.logger = Logger;
+    this.recentlyAnnounced = recentlyAnnounced;
     /** @type {Map<string, Object<string, number>>} DDB character id -> slot key -> used */
     this.lastUsed = new Map();
   }
@@ -73,6 +82,10 @@ export class SpellSlotNotifier extends ICharacterSync {
 
     const spent = SpellSlotNotifier.spentSlots(previous, current);
     if (!spent.length) return;
+    if (this.recentlyAnnounced?.(actor.id)) {
+      this.logger.log(`DDB Sync | ${actor.name} slot spend already covered by a spell card`);
+      return;
+    }
 
     const lines = spent.map(({ pact, level, count }) =>
       `${count > 1 ? `${count}× ` : ''}level ${level} ${pact ? 'pact magic slot' : 'spell slot'}`

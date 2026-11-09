@@ -16,6 +16,7 @@ DDB Sync listens for messages from D&D Beyond and dispatches them to specialized
 - Capture and apply dice rolls to Foundry actors (Attack, Damage, Save, Abilitiy Check, Initiative, Generic Roll)
 - Sync HP/damage updates from D&D Beyond to mapped Foundry actor without overwriting unrelated character data
 - Sync conditions (including exhaustion levels) a player sets on their D&D Beyond sheet to the mapped Foundry actor
+- Post a spell's card to chat when a D&D Beyond roll belongs to a spell (once per cast), with a "Place template" button for area spells and optional template cleanup on the next turn or round
 - Provides a UI for mapping D&D Beyond characters to Foundry actors
 - On Foundry Player Actor sheet provides a dropdown to select dice behavior (Normal, Manual, D&D Beyond)
 
