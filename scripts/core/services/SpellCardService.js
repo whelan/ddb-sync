@@ -185,16 +185,17 @@ export class SpellCardService {
    */
   async postCard(actor, spell) {
     const flags = SpellCardService.cardFlags(actor, spell);
-    const options = RollModePolicy.messageOptions(actor);
 
     if (typeof spell.displayCard === 'function') {
       try {
-        // dnd5e (5.x and 6.x) merges `flags` into the card and applies `rollMode`
-        // itself before creating the message. Letting it create the card keeps
-        // the system's own rendering: 6.x stores card data in `system` and has
-        // no `content`, so building the message ourselves would lose the card.
+        // dnd5e 6 merges `flags` into the card and applies `rollMode` (a v14
+        // message mode) itself before creating the message. Letting it create
+        // the card keeps the system's own rendering: card data lives in
+        // `system` and there is no `content`, so building the message
+        // ourselves would lose the card.
         const config = { flags };
-        if (options.rollMode) config.rollMode = SpellCardService.messageMode(options.rollMode);
+        const rollMode = RollModePolicy.messageMode(actor);
+        if (rollMode) config.rollMode = rollMode;
         const result = await spell.displayCard(config);
         if (result) return result;
         // A preDisplayCard hook returned false: respect it, post nothing.
@@ -204,22 +205,14 @@ export class SpellCardService {
       }
     }
 
-    return ChatMessage.create({
+    const data = {
       content: SpellCardService.fallbackContent(spell),
       speaker: ChatMessage.getSpeaker({ actor }),
       flags
-    }, options);
-  }
-
-  /**
-   * Foundry v14 renamed roll modes to message modes ("publicroll" -> "public").
-   * @param {string} rollMode - v13 roll mode from RollModePolicy
-   * @returns {string}
-   */
-  static messageMode(rollMode) {
-    const generation = Number(game.release?.generation) || 13;
-    if (generation < 14) return rollMode;
-    return { publicroll: 'public', gmroll: 'gm', blindroll: 'blind', selfroll: 'self' }[rollMode] ?? rollMode;
+    };
+    const mode = RollModePolicy.messageMode(actor);
+    if (mode) ChatMessage.applyMode(data, mode);
+    return ChatMessage.create(data);
   }
 
   /**

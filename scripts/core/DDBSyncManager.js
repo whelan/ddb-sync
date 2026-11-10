@@ -239,8 +239,8 @@ export class DDBSyncManager {
     ui.notifications.error('DDB Sync: Your CobaltSession cookie has expired. Please update it in the module settings.');
     
     // Create a dialog prompting the user to update the cookie
-    new Dialog({
-      title: 'D&D Beyond Cookie Expired',
+    new foundry.applications.api.DialogV2({
+      window: { title: 'D&D Beyond Cookie Expired' },
       content: `
         <p>Your D&D Beyond CobaltSession cookie has expired or is invalid.</p>
         <p><strong>To get a new cookie:</strong></p>
@@ -253,20 +253,22 @@ export class DDBSyncManager {
           <li>Click "Reconnect" in the module settings</li>
         </ol>
       `,
-      buttons: {
-        open_settings: {
+      buttons: [
+        {
+          action: 'open_settings',
           label: 'Open Settings',
+          default: true,
           callback: () => {
             // Open module settings
-            game.settings.sheet.render(true);
+            game.settings.sheet.render({ force: true });
           }
         },
-        close: {
+        {
+          action: 'close',
           label: 'Close'
         }
-      },
-      default: 'open_settings'
-    }).render(true);
+      ]
+    }).render({ force: true });
     
     // Disconnect to prevent repeated failed auth attempts
     this.disconnect();

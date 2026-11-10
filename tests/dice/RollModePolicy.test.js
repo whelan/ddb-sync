@@ -7,13 +7,15 @@
  */
 
 class RollModePolicy {
-  static messageOptions(actor) {
+  static messageMode(actor) {
     // Player-owned actors always post publicly; GM-only actors (NPCs,
-    // monsters, the GM's own characters) follow the GM's roll-mode dropdown.
-    if (actor?.hasPlayerOwner) {
-      return { rollMode: 'publicroll' };
-    }
-    return {};
+    // monsters, the GM's own characters) follow the GM's dropdown.
+    return actor?.hasPlayerOwner ? 'public' : undefined;
+  }
+
+  static messageOptions(actor) {
+    const messageMode = RollModePolicy.messageMode(actor);
+    return messageMode ? { messageMode } : {};
   }
 
   static suppressAnimation() {
@@ -23,9 +25,14 @@ class RollModePolicy {
 
 describe('RollModePolicy', () => {
   describe('messageOptions', () => {
-    it('forces publicroll for a player-owned actor', () => {
+    it('forces the public message mode for a player-owned actor', () => {
       const result = RollModePolicy.messageOptions({ hasPlayerOwner: true });
-      expect(result).toEqual({ rollMode: 'publicroll' });
+      expect(result).toEqual({ messageMode: 'public' });
+    });
+
+    it('never emits the legacy rollMode option ignored by v14 Roll#toMessage', () => {
+      const result = RollModePolicy.messageOptions({ hasPlayerOwner: true });
+      expect(result).not.toHaveProperty('rollMode');
     });
 
     it('returns {} for a GM-only actor (no player owner)', () => {
@@ -46,6 +53,21 @@ describe('RollModePolicy', () => {
     it('returns {} when the actor is undefined', () => {
       const result = RollModePolicy.messageOptions(undefined);
       expect(result).toEqual({});
+    });
+  });
+
+  describe('messageMode', () => {
+    it("returns 'public' for a player-owned actor", () => {
+      expect(RollModePolicy.messageMode({ hasPlayerOwner: true })).toBe('public');
+    });
+
+    it('returns undefined for a GM-only actor', () => {
+      expect(RollModePolicy.messageMode({ hasPlayerOwner: false })).toBeUndefined();
+    });
+
+    it('returns undefined when the actor is null or undefined', () => {
+      expect(RollModePolicy.messageMode(null)).toBeUndefined();
+      expect(RollModePolicy.messageMode(undefined)).toBeUndefined();
     });
   });
 

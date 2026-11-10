@@ -9,11 +9,10 @@ import { Logger } from '../../utils/Logger.js';
  * The card carries flags['ddb-sync'].spellCard = { actorUuid, itemUuid }. When
  * the spell has an area (dnd5e activity `target.template.type`), every client
  * renders a "Place template" button on the card for the GM and the actor's
- * owners. Placement goes through dnd5e's own AbilityTemplate preview, so it
+ * owners. Placement goes through dnd5e's own TemplatePlacement, so it
  * snaps and measures exactly like casting from the sheet.
  *
- * Areas placed this way (Regions on Foundry v14, MeasuredTemplates on v13)
- * are flagged with the combat state at creation:
+ * Areas placed this way (Regions, Foundry v14 / dnd5e 6) are flagged with the combat state at creation:
  * flags['ddb-sync'].spellTemplate = { combatId, round, turn }. On every
  * combat update the active GM deletes the flagged templates whose time is up,
  * according to the world setting `spellTemplateCleanup` (never/turn/round).
@@ -25,8 +24,6 @@ export class SpellTemplateService {
   static MODULE_ID = 'ddb-sync';
   static CLEANUP_MODES = ['never', 'turn', 'round'];
   static DEFAULT_CLEANUP = 'round';
-  /** Legacy (pre-activity) dnd5e area target types. */
-  static AREA_TYPES = ['cone', 'cube', 'cylinder', 'line', 'sphere', 'radius', 'square', 'wall'];
 
   static _registered = false;
 
@@ -37,13 +34,13 @@ export class SpellTemplateService {
   /**
    * Where a spell's area of effect is defined.
    * @param {Object} item - A dnd5e spell item
-   * @returns {{activity: Object|null, type: string}|null} null if the spell has no area
+   * @returns {{activity: Object, type: string}|null} null if the spell has no area
    */
   static templateInfo(item) {
     const system = item?.system;
     if (!system) return null;
 
-    // dnd5e v4+: area lives on an activity
+    // dnd5e 6: the area lives on an activity
     let activities = [];
     try {
       activities = Array.from(system.activities ?? []);
@@ -51,12 +48,7 @@ export class SpellTemplateService {
       activities = [];
     }
     const activity = activities.find((a) => a?.target?.template?.type);
-    if (activity) return { activity, type: activity.target.template.type };
-
-    // dnd5e v3: item-level target
-    const legacy = system.target?.template?.type
-      ?? (SpellTemplateService.AREA_TYPES.includes(system.target?.type) ? system.target.type : null);
-    return legacy ? { activity: null, type: legacy } : null;
+    return activity ? { activity, type: activity.target.template.type } : null;
   }
 
   /**
@@ -105,7 +97,7 @@ export class SpellTemplateService {
   static _resolve(uuid) {
     if (!uuid) return null;
     try {
-      return fromUuidSync(uuid);
+      return foundry.utils.fromUuidSync(uuid);
     } catch {
       return null;
     }
@@ -119,7 +111,7 @@ export class SpellTemplateService {
   static onRenderChatMessage(message, html) {
     const card = message?.getFlag?.(this.MODULE_ID, 'spellCard');
     if (!card) return;
-    const root = html instanceof HTMLElement ? html : html?.[0];
+    const root = html;
     if (!root || root.querySelector('.ddb-sync-place-template')) return;
 
     const item = this._resolve(card.itemUuid);
@@ -156,46 +148,21 @@ export class SpellTemplateService {
   /**
    * Let the user place the spell's area with the system's own placement tool.
    *
-   * dnd5e 6 (Foundry v14) places areas as Regions through
+   * dnd5e 6 places areas as Regions through
    * `dnd5e.canvas.TemplatePlacement.fromActivity`, which awaits the placement
    * and creates the regions with `createData` merged in - so our flag rides
-   * along. dnd5e 5 (Foundry v13) uses the older AbilityTemplate preview and
-   * MeasuredTemplates; that path is kept as a fallback.
+   * along.
    * @param {Item} item
    */
   static async placeTemplate(item) {
     const info = this.templateInfo(item);
-    const canvasApi = globalThis.dnd5e?.canvas;
-    if (!info || !canvasApi || !canvas?.scene) {
+    const TemplatePlacement = globalThis.dnd5e?.canvas?.TemplatePlacement;
+    if (!info || typeof TemplatePlacement?.fromActivity !== 'function' || !canvas?.scene) {
       ui.notifications?.warn(game.i18n.localize('DDB.SpellTemplate.Unavailable'));
       return;
     }
     const flags = { [this.MODULE_ID]: { spellTemplate: this.combatStamp() } };
-
-    // dnd5e 6+: Regions
-    const TemplatePlacement = canvasApi.TemplatePlacement;
-    if (info.activity && typeof TemplatePlacement?.fromActivity === 'function') {
-      await TemplatePlacement.fromActivity(info.activity, { createData: { flags } });
-      return;
-    }
-
-    // dnd5e 5: MeasuredTemplates
-    const AbilityTemplate = canvasApi.AbilityTemplate;
-    let created = null;
-    if (info.activity && typeof AbilityTemplate?.fromActivity === 'function') {
-      created = AbilityTemplate.fromActivity(info.activity);
-    } else if (typeof AbilityTemplate?.fromItem === 'function') {
-      created = AbilityTemplate.fromItem(item);
-    }
-    const templates = [created].flat().filter(Boolean);
-    if (!templates.length) {
-      ui.notifications?.warn(game.i18n.localize('DDB.SpellTemplate.Unavailable'));
-      return;
-    }
-    for (const template of templates) {
-      template.document?.updateSource?.({ flags });
-      await template.drawPreview();
-    }
+    await TemplatePlacement.fromActivity(info.activity, { createData: { flags } });
   }
 
   /**
@@ -220,15 +187,10 @@ export class SpellTemplateService {
     };
 
     for (const scene of game.scenes ?? []) {
-      // Regions (Foundry v14 / dnd5e 6) and MeasuredTemplates (v13 / dnd5e 5)
-      for (const [collection, documentName] of [['regions', 'Region'], ['templates', 'MeasuredTemplate']]) {
-        const docs = scene[collection];
-        if (!docs) continue;
-        const ids = docs.filter(expired).map((d) => d.id);
-        if (!ids.length) continue;
-        await scene.deleteEmbeddedDocuments(documentName, ids);
-        Logger.log(`DDB Sync | Removed ${ids.length} expired spell area(s) from ${scene.name}`);
-      }
+      const ids = (scene.regions ?? []).filter(expired).map((d) => d.id);
+      if (!ids.length) continue;
+      await scene.deleteEmbeddedDocuments('Region', ids);
+      Logger.log(`DDB Sync | Removed ${ids.length} expired spell area(s) from ${scene.name}`);
     }
   }
 }

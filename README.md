@@ -21,8 +21,8 @@ DDB Sync listens for messages from D&D Beyond and dispatches them to specialized
 - On Foundry Player Actor sheet provides a dropdown to select dice behavior (Normal, Manual, D&D Beyond)
 
 ## System Requirements
-- **Foundry VTT**: Version 13 or higher (verified on v13)
-- **D&D 5e System**: Required for character and ability mapping
+- **Foundry VTT**: Version 14 (verified on v14). Foundry v13 is no longer supported; stay on ddb-sync 0.0.15 for v13.
+- **D&D 5e System**: Version 6.x (verified on 6.1). Required for character and ability mapping, spell cards and spell areas. dnd5e 5.x and earlier are no longer supported.
 - **DDB Proxy**: Required to proxy requests to D&D Beyond.  Must be your own install and not Mr Primates hosted version as this require a small change to the proxy to function correctly. 
 
 ## IMPORTANT! REQUIRES: custom DDB Proxy

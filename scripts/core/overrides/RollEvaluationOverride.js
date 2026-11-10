@@ -132,10 +132,9 @@ export class RollEvaluationOverride {
     for (const term of roll.terms) {
       if (term instanceof foundry.dice.terms.Die) {
         const customDice = diceResults[resultIndex];
-        customDice.results.sort((a, b) => a - b); // Sort DDB results ascending
-        term.results.sort((a, b) => a.result - b.result); // Sort Foundry results ascending
-
         if (customDice && customDice.results) {
+          customDice.results.sort((a, b) => a - b); // Sort DDB results ascending
+          term.results.sort((a, b) => a.result - b.result); // Sort Foundry results ascending
           for (let i = 0; i < term.results.length && i < customDice.results.length; i++) {
             term.results[i].result = customDice.results[i];
           }

@@ -7,8 +7,6 @@
  */
 
 class SpellTemplateService {
-  static AREA_TYPES = ['cone', 'cube', 'cylinder', 'line', 'sphere', 'radius', 'square', 'wall'];
-
   static templateInfo(item) {
     const system = item?.system;
     if (!system) return null;
@@ -19,10 +17,7 @@ class SpellTemplateService {
       activities = [];
     }
     const activity = activities.find((a) => a?.target?.template?.type);
-    if (activity) return { activity, type: activity.target.template.type };
-    const legacy = system.target?.template?.type
-      ?? (SpellTemplateService.AREA_TYPES.includes(system.target?.type) ? system.target.type : null);
-    return legacy ? { activity: null, type: legacy } : null;
+    return activity ? { activity, type: activity.target.template.type } : null;
   }
 
   static shouldDeleteTemplate(flag, combat, mode) {
@@ -39,7 +34,7 @@ class SpellTemplateService {
 }
 
 describe('SpellTemplateService.templateInfo', () => {
-  it('finds the area on a dnd5e v4+ activity', () => {
+  it('finds the area on a dnd5e 6 activity', () => {
     const save = { type: 'save', target: { template: { type: 'sphere', size: '20' } } };
     const item = { system: { activities: [{ type: 'utility', target: { template: { type: '' } } }, save] } };
     expect(SpellTemplateService.templateInfo(item)).toEqual({ activity: save, type: 'sphere' });
@@ -51,10 +46,9 @@ describe('SpellTemplateService.templateInfo', () => {
     expect(SpellTemplateService.templateInfo(item).type).toBe('cone');
   });
 
-  it('falls back to legacy item targets', () => {
-    expect(SpellTemplateService.templateInfo({ system: { target: { template: { type: 'line' } } } }))
-      .toEqual({ activity: null, type: 'line' });
-    expect(SpellTemplateService.templateInfo({ system: { target: { type: 'cube' } } }).type).toBe('cube');
+  it('ignores legacy (pre-activity) item-level targets', () => {
+    expect(SpellTemplateService.templateInfo({ system: { target: { template: { type: 'line' } } } })).toBeNull();
+    expect(SpellTemplateService.templateInfo({ system: { target: { type: 'cube' } } })).toBeNull();
   });
 
   it('returns null for spells without an area', () => {

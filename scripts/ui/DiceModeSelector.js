@@ -11,7 +11,7 @@ export class DiceModeSelector {
   /**
    * Render dice mode selector on character sheet
    * @param {Object} app - The sheet application
-   * @param {jQuery|HTMLElement} html - The app's HTML element
+   * @param {HTMLElement} html - The app's HTML element
    * @param {Object} data - The app's data
    */
   renderDiceMode(app, html, data) {
@@ -25,8 +25,8 @@ export class DiceModeSelector {
       return;
     }
 
-    // Convert jQuery object to HTMLElement if needed
-    const appElement = html instanceof jQuery ? html[0] : html;
+    // Foundry v14 render hooks pass the application's HTMLElement
+    const appElement = html;
     console.log('DDB Sync | App element found:', !!appElement);
 
     if (!appElement) {
