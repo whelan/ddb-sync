@@ -1,3 +1,13 @@
+# 0.0.16
+- **Foundry v14 and dnd5e 6 only.** Foundry v13 and dnd5e 5.x and earlier are no longer supported; stay on 0.0.15 if you need them. All v13 / dnd5e ≤5 code paths are removed.
+- Fixed: rolls for player-owned actors were not forced public on Foundry v14. v14 ignores the old `rollMode: 'publicroll'` option; the module now passes `messageMode: 'public'` to core `Roll#toMessage` and the v14 message mode (`'public'`) to dnd5e's `rollMode` message configs (spell cards, death saves). GM-only actors still follow the GM's chat mode dropdown.
+- Spell slots spent on D&D Beyond are announced in Foundry chat (settings `Notify Spell Slots` and `GM only`). Skipped when a spell card was just posted for that actor.
+- Spell rolls from D&D Beyond post the spell's dnd5e card once per cast (setting `postSpellCards`). Nothing is consumed or rolled.
+- Area spells get a "Place template" button on the card for the GM and the actor's owners. Placement uses dnd5e 6's `TemplatePlacement`, which creates Regions; the old MeasuredTemplate / AbilityTemplate path and pre-activity item targets are gone. Placed areas are removed at the next turn or round, or when combat ends (setting `spellTemplateCleanup`, default: round).
+- Monk's TokenBar "Request Roll" works with D&D Beyond: tokens mapped to a DDB character get a whisper to roll the save / ability check / skill check / death save / initiative on D&D Beyond, and the matching DDB roll is filled into the TokenBar card as that token's result (DC pass/fail by TokenBar) instead of being posted separately. Rolls made from the card's own buttons still count. Setting `monksTokenBarRequests` (default on; needs `monks-tokenbar`). Death saves go through dnd5e so the actor's successes/failures update; initiative is also written to the combat tracker.
+- Death saves use dnd5e 6's `rollDeathSave(config, dialog, message)` signature only.
+- The "cookie expired" prompt uses `DialogV2`; jQuery fallbacks in the dice mode selector and dice input dialog are removed (v14 passes HTMLElements).
+
 # 0.0.15
 - Death saving throws rolled on D&D Beyond now show up in Foundry. They were sent as a "save" with action "Death", which the saving-throw handler couldn't map to an ability and dropped. They now go through dnd5e's own death save roll with the D&D Beyond dice, so the actor's death save successes/failures (and nat 1 / nat 20) update in Foundry too.
 

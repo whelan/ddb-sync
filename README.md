@@ -16,12 +16,14 @@ DDB Sync listens for messages from D&D Beyond and dispatches them to specialized
 - Capture and apply dice rolls to Foundry actors (Attack, Damage, Save, Abilitiy Check, Initiative, Generic Roll)
 - Sync HP/damage updates from D&D Beyond to mapped Foundry actor without overwriting unrelated character data
 - Sync conditions (including exhaustion levels) a player sets on their D&D Beyond sheet to the mapped Foundry actor
+- Post a spell's card to chat when a D&D Beyond roll belongs to a spell (once per cast), with a "Place template" button for area spells and optional template cleanup on the next turn or round
+- Answer Monk's TokenBar "Request Roll" cards (saves, ability and skill checks, death saves, initiative) with D&D Beyond rolls: the player is whispered to roll on D&D Beyond and the result lands in the card as that token's roll (setting `monksTokenBarRequests`)
 - Provides a UI for mapping D&D Beyond characters to Foundry actors
 - On Foundry Player Actor sheet provides a dropdown to select dice behavior (Normal, Manual, D&D Beyond)
 
 ## System Requirements
-- **Foundry VTT**: Version 13 or higher (verified on v13)
-- **D&D 5e System**: Required for character and ability mapping
+- **Foundry VTT**: Version 14 (verified on v14). Foundry v13 is no longer supported; stay on ddb-sync 0.0.15 for v13.
+- **D&D 5e System**: Version 6.x (verified on 6.1). Required for character and ability mapping, spell cards and spell areas. dnd5e 5.x and earlier are no longer supported.
 - **DDB Proxy**: Required to proxy requests to D&D Beyond.  Must be your own install and not Mr Primates hosted version as this require a small change to the proxy to function correctly. 
 
 ## IMPORTANT! REQUIRES: custom DDB Proxy

@@ -135,6 +135,60 @@ export class SettingsRegistry {
       type: Boolean,
       default: true
     });
+
+    // Announce spell slots spent on D&D Beyond in chat
+    game.settings.register(this.MODULE_ID, 'notifySpellSlots', {
+      name: 'DDB.Settings.NotifySpellSlots.Name',
+      hint: 'DDB.Settings.NotifySpellSlots.Hint',
+      scope: 'world',
+      config: true,
+      type: Boolean,
+      default: true
+    });
+
+    game.settings.register(this.MODULE_ID, 'notifySpellSlotsGmOnly', {
+      name: 'DDB.Settings.NotifySpellSlotsGmOnly.Name',
+      hint: 'DDB.Settings.NotifySpellSlotsGmOnly.Hint',
+      scope: 'world',
+      config: true,
+      type: Boolean,
+      default: false
+    });
+
+    // Post the spell's card when a D&D Beyond roll belongs to a spell
+    game.settings.register(this.MODULE_ID, 'postSpellCards', {
+      name: 'DDB.Settings.PostSpellCards.Name',
+      hint: 'DDB.Settings.PostSpellCards.Hint',
+      scope: 'world',
+      config: true,
+      type: Boolean,
+      default: true
+    });
+
+    // Answer Monk's TokenBar roll requests with D&D Beyond rolls
+    game.settings.register(this.MODULE_ID, 'monksTokenBarRequests', {
+      name: 'DDB.Settings.MonksTokenBarRequests.Name',
+      hint: 'DDB.Settings.MonksTokenBarRequests.Hint',
+      scope: 'world',
+      config: true,
+      type: Boolean,
+      default: true
+    });
+
+    // When spell templates placed from those cards are removed in combat
+    game.settings.register(this.MODULE_ID, 'spellTemplateCleanup', {
+      name: 'DDB.Settings.SpellTemplateCleanup.Name',
+      hint: 'DDB.Settings.SpellTemplateCleanup.Hint',
+      scope: 'world',
+      config: true,
+      type: String,
+      choices: {
+        never: 'DDB.Settings.SpellTemplateCleanup.Never',
+        turn: 'DDB.Settings.SpellTemplateCleanup.Turn',
+        round: 'DDB.Settings.SpellTemplateCleanup.Round'
+      },
+      default: 'round'
+    });
   }
 
   static registerDataSettings() {

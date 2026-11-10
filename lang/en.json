@@ -22,5 +22,24 @@
   "DDB.Settings.UpdateDamageOnly.Hint": "When enabled, character damage from D&D Beyond will sync.",
 
   "DDB.Settings.SyncConditions.Name": "Update Character Conditions From D&D Beyond",
-  "DDB.Settings.SyncConditions.Hint": "When enabled, conditions a player sets on their D&D Beyond character sheet (including exhaustion levels) are applied to the mapped Foundry actor, and conditions removed on D&D Beyond are removed in Foundry. Only the 15 core 5e conditions are touched; other status effects are left alone."
+  "DDB.Settings.SyncConditions.Hint": "When enabled, conditions a player sets on their D&D Beyond character sheet (including exhaustion levels) are applied to the mapped Foundry actor, and conditions removed on D&D Beyond are removed in Foundry. Only the 15 core 5e conditions are touched; other status effects are left alone.",
+
+  "DDB.Settings.NotifySpellSlots.Name": "Announce Spells Cast on D&D Beyond in Chat",
+  "DDB.Settings.NotifySpellSlots.Hint": "Posts a chat message when a player spends a spell slot or pact magic slot on their D&D Beyond sheet. D&D Beyond only reports the slot level, not which spell; cantrips spend no slot and are not announced.",
+  "DDB.Settings.NotifySpellSlotsGmOnly.Name": "Spell Announcements to GM Only",
+  "DDB.Settings.NotifySpellSlotsGmOnly.Hint": "Whisper spell slot announcements to the GM instead of posting them publicly.",
+
+  "DDB.Settings.PostSpellCards.Name": "Post Spell Cards for D&D Beyond Spell Rolls",
+  "DDB.Settings.PostSpellCards.Hint": "When a D&D Beyond roll belongs to a spell on the mapped actor, post that spell's card to chat once per cast (attack and damage rolls share one card). Nothing is consumed or rolled. Spells with an area of effect get a Place template button for the GM and the actor's owner. While a card is shown, the separate spell slot announcement is skipped.",
+  "DDB.Settings.SpellTemplateCleanup.Name": "Remove Spell Templates in Combat",
+  "DDB.Settings.SpellTemplateCleanup.Hint": "When templates placed from a spell card are deleted during combat. Templates placed outside combat are never removed automatically.",
+  "DDB.Settings.SpellTemplateCleanup.Never": "Never",
+  "DDB.Settings.SpellTemplateCleanup.Turn": "At the next turn",
+  "DDB.Settings.SpellTemplateCleanup.Round": "At the next round",
+  "DDB.SpellTemplate.Place": "Place template",
+  "DDB.SpellTemplate.Unavailable": "DDB Sync: this spell's template cannot be placed (no active scene or dnd5e template support).",
+
+  "DDB.Settings.MonksTokenBarRequests.Name": "Answer Monk's TokenBar Roll Requests from D&D Beyond",
+  "DDB.Settings.MonksTokenBarRequests.Hint": "When Monk's TokenBar requests a saving throw, ability check or skill check from tokens mapped to a D&D Beyond character, whisper the player to roll it on D&D Beyond and fill that roll into the request card as the token's result (it is not posted to chat a second time). Rolling from the card's own buttons in Foundry still works.",
+  "DDB.MonksTokenBar.RollOnDDB": "Roll {request} on D&D Beyond ({actor})."
 }

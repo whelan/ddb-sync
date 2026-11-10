@@ -5,7 +5,7 @@ import { DiceExtractor } from '../../dice/DiceExtractor.js';
  *
  * Robust replacement for the (dnd5e-v4-era) Roll.prototype.evaluate override.
  *
- * dnd5e v5 evaluates attack/damage rolls through its own BasicRoll subclasses
+ * dnd5e 6 evaluates attack/damage rolls through its own BasicRoll subclasses
  * (D20Roll / DamageRoll), so patching the generic Roll.prototype.evaluate does
  * not let us reliably swap dice values. Instead we wrap the *system* roll
  * classes' evaluate, let dnd5e roll normally (advantage, modifiers, crit logic

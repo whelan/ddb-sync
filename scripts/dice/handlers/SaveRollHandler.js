@@ -1,6 +1,7 @@
 import { IRollHandler } from '../interfaces/IRollHandler.js';
 import { RollModePolicy } from '../RollModePolicy.js';
 import { Logger } from '../../utils/Logger.js';
+import { ABILITY_MAP } from '../DDBRollKeys.js';
 
 /**
  * Save Roll Handler
@@ -16,21 +17,7 @@ export class SaveRollHandler extends IRollHandler {
     this.logger = Logger;
 
     // Map DDB ability names to Foundry ability abbreviations
-    this.abilityMap = {
-      'strength': 'str',
-      'dexterity': 'dex',
-      'constitution': 'con',
-      'intelligence': 'int',
-      'wisdom': 'wis',
-      'charisma': 'cha',
-      // Also support abbreviated forms from DDB
-      'str': 'str',
-      'dex': 'dex',
-      'con': 'con',
-      'int': 'int',
-      'wis': 'wis',
-      'cha': 'cha'
-    };
+    this.abilityMap = { ...ABILITY_MAP };
   }
 
   /**

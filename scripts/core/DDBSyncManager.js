@@ -4,6 +4,8 @@ import { WebSocketManager } from './services/WebSocketManager.js';
 import { CharacterDataService } from './services/CharacterDataService.js';
 import { DamageSyncService } from './services/DamageSyncService.js';
 import { ConditionSyncService } from './services/ConditionSyncService.js';
+import { SpellSlotNotifier } from './services/SpellSlotNotifier.js';
+import { SpellCardService } from './services/SpellCardService.js';
 import { MessageDispatcher } from './services/MessageDispatcher.js';
 import { CharacterUpdateMessageHandler } from './handlers/CharacterUpdateMessageHandler.js';
 import { DiceRollMessageHandler } from './handlers/DiceRollMessageHandler.js';
@@ -18,6 +20,7 @@ import { SaveRollHandler } from '../dice/handlers/SaveRollHandler.js';
 import { DeathSaveRollHandler } from '../dice/handlers/DeathSaveRollHandler.js';
 import { AbilityCheckRollHandler } from '../dice/handlers/AbilityCheckRollHandler.js';
 import { AttackRollHandler } from '../dice/handlers/AttackRollHandler.js';
+import { MonksTokenBarBridge } from '../integrations/MonksTokenBarBridge.js';
 
 /**
  * DDB Sync Manager - Main Orchestrator
@@ -41,8 +44,21 @@ export class DDBSyncManager {
     this.characterMapper = new CharacterMapper();
     this.diceRollHandler = new DiceRollHandler();
 
+    // Spell cards on spell rolls; the slot notifier stays quiet for a cast that already got a card
+    this.spellCardService = new SpellCardService({ characterMapper: this.characterMapper });
+    this.spellSlotNotifier = new SpellSlotNotifier({
+      recentlyAnnounced: (actorId) => this.spellCardService.recentlyAnnounced(actorId)
+    });
+
+    // Monk's TokenBar "Request Roll" cards answered by D&D Beyond rolls (inactive without the module)
+    const { diceExtractor, rollBuilder } = this.diceRollHandler.getServices();
+    this.tokenBarBridge = new MonksTokenBarBridge({ characterMapper: this.characterMapper, diceExtractor, rollBuilder });
+    this.tokenBarBridge.registerHooks();
+
     // Initialize dice roll message handler (for DDB dice mode) with character mapper and dice roll handler
-    this.diceRollMessageHandler = new DiceRollMessageHandler(this.characterMapper, this.diceRollHandler);
+    this.diceRollMessageHandler = new DiceRollMessageHandler(
+      this.characterMapper, this.diceRollHandler, this.spellCardService, this.tokenBarBridge
+    );
 
     // Initialize dice input dialog with handler injection
     this.diceInputDialog = new DiceInputDialog(this.diceRollMessageHandler);
@@ -65,7 +81,7 @@ export class DDBSyncManager {
     const characterUpdateHandler = new CharacterUpdateMessageHandler(
       this.characterDataService,
       this.characterMapper,
-      [this.damageSyncService, this.conditionSyncService]
+      [this.damageSyncService, this.conditionSyncService, this.spellSlotNotifier]
     );
     this.messageDispatcher.registerHandler(characterUpdateHandler);
   }
@@ -229,8 +245,8 @@ export class DDBSyncManager {
     ui.notifications.error('DDB Sync: Your CobaltSession cookie has expired. Please update it in the module settings.');
     
     // Create a dialog prompting the user to update the cookie
-    new Dialog({
-      title: 'D&D Beyond Cookie Expired',
+    new foundry.applications.api.DialogV2({
+      window: { title: 'D&D Beyond Cookie Expired' },
       content: `
         <p>Your D&D Beyond CobaltSession cookie has expired or is invalid.</p>
         <p><strong>To get a new cookie:</strong></p>
@@ -243,20 +259,22 @@ export class DDBSyncManager {
           <li>Click "Reconnect" in the module settings</li>
         </ol>
       `,
-      buttons: {
-        open_settings: {
+      buttons: [
+        {
+          action: 'open_settings',
           label: 'Open Settings',
+          default: true,
           callback: () => {
             // Open module settings
-            game.settings.sheet.render(true);
+            game.settings.sheet.render({ force: true });
           }
         },
-        close: {
+        {
+          action: 'close',
           label: 'Close'
         }
-      },
-      default: 'open_settings'
-    }).render(true);
+      ]
+    }).render({ force: true });
     
     // Disconnect to prevent repeated failed auth attempts
     this.disconnect();
