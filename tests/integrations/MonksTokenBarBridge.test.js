@@ -52,6 +52,10 @@ class MonksTokenBarBridge {
     const action = String(rollData?.action || '').trim().toLowerCase();
     if (!action) return null;
 
+    // Same detection as InitiativeRollHandler / DeathSaveRollHandler
+    if (action === 'initiative' || rollType === 'initiative') return { type: 'misc', key: 'init' };
+    if (action === 'death' || action.startsWith('death save')) return { type: 'misc', key: 'death' };
+
     if (rollType === 'save') {
       const key = ABILITY_MAP[action];
       return key ? { type: 'save', key } : null;
@@ -61,6 +65,30 @@ class MonksTokenBarBridge {
       if (ABILITY_MAP[action]) return { type: 'ability', key: ABILITY_MAP[action] };
     }
     return null;
+  }
+
+  /**
+   * Can a DDB roll answer this TokenBar request? Saves, ability and skill
+   * checks, plus the dnd5e "misc" requests for death saves and initiative.
+   * @param {Object} request - One of the card's requests
+   * @returns {boolean}
+   */
+  static isAnswerable(request) {
+    if (['save', 'ability', 'skill'].includes(request?.type)) return true;
+    return request?.type === 'misc' && ['death', 'init'].includes(request?.key);
+  }
+
+  /**
+   * TokenBar stores some request names as i18n keys (e.g. death saves).
+   * @param {string} text
+   * @returns {string}
+   */
+  static localize(text) {
+    try {
+      return globalThis.game?.i18n?.localize?.(text) ?? text;
+    } catch {
+      return text;
+    }
   }
 
   /**
@@ -77,7 +105,7 @@ class MonksTokenBarBridge {
    */
   static hasDDBRequest(flags) {
     return MonksTokenBarBridge.isRequestCard(flags) &&
-      flags.requests.some(r => ['save', 'ability', 'skill'].includes(r?.type));
+      flags.requests.some(r => MonksTokenBarBridge.isAnswerable(r));
   }
 
   /**
@@ -129,8 +157,9 @@ class MonksTokenBarBridge {
    */
   static requestLabel(requests) {
     return (requests || [])
-      .filter(r => ['save', 'ability', 'skill'].includes(r?.type))
-      .map(r => String(r.name || `${r.key} ${r.type}`).replace(/<[^>]*>/g, '').trim())
+      .filter(r => MonksTokenBarBridge.isAnswerable(r))
+      .map(r => MonksTokenBarBridge.localize(r.name || `${r.key} ${r.type}`))
+      .map(r => String(r).replace(/<[^>]*>/g, '').trim())
       .filter(Boolean)
       .join(' / ');
   }
@@ -184,8 +213,6 @@ describe('mapDDBRoll', () => {
   });
 
   test('death saves, initiative, attacks, damage and unknown actions are not requests', () => {
-    expect(MonksTokenBarBridge.mapDDBRoll(ddbRoll('save', 'Death'))).toBeNull();
-    expect(MonksTokenBarBridge.mapDDBRoll(ddbRoll('roll', 'Initiative'))).toBeNull();
     expect(MonksTokenBarBridge.mapDDBRoll(ddbRoll('to hit', 'Longsword'))).toBeNull();
     expect(MonksTokenBarBridge.mapDDBRoll(ddbRoll('damage', 'Longsword'))).toBeNull();
     expect(MonksTokenBarBridge.mapDDBRoll(ddbRoll('check', 'Thieves Tools'))).toBeNull();
@@ -206,10 +233,10 @@ describe('card helpers', () => {
     expect(MonksTokenBarBridge.isRequestCard(undefined)).toBe(false);
   });
 
-  test('hasDDBRequest needs a save, ability or skill request', () => {
+  test('hasDDBRequest needs a save, check, death save or initiative request', () => {
     expect(MonksTokenBarBridge.hasDDBRequest(flags)).toBe(true);
     expect(MonksTokenBarBridge.hasDDBRequest({ what: 'savingthrow', requests: [{ type: 'dice', key: '1d6' }] })).toBe(false);
-    expect(MonksTokenBarBridge.hasDDBRequest({ what: 'savingthrow', requests: [{ type: 'misc', key: 'death' }] })).toBe(false);
+    expect(MonksTokenBarBridge.hasDDBRequest({ what: 'savingthrow', requests: [{ type: 'misc', key: 'other' }] })).toBe(false);
   });
 
   test('tokenEntries ignores non-token flags; pendingTokens skips rolled and errored tokens', () => {
@@ -284,5 +311,36 @@ describe('findMatch', () => {
     expect(MonksTokenBarBridge.findMatch([{ id: 'x', flags: { what: 'contestedroll' } }], 'a1', { type: 'save', key: 'wis' })).toBeNull();
     expect(MonksTokenBarBridge.findMatch([], 'a1', null)).toBeNull();
     expect(MonksTokenBarBridge.findMatch([], null, { type: 'save', key: 'wis' })).toBeNull();
+  });
+});
+
+describe('death saves and initiative', () => {
+  it('maps DDB death saves and initiative to TokenBar misc requests', () => {
+    expect(MonksTokenBarBridge.mapDDBRoll(ddbRoll('save', 'Death'))).toEqual({ type: 'misc', key: 'death' });
+    expect(MonksTokenBarBridge.mapDDBRoll(ddbRoll('save', 'Death Save'))).toEqual({ type: 'misc', key: 'death' });
+    expect(MonksTokenBarBridge.mapDDBRoll(ddbRoll('roll', 'Initiative'))).toEqual({ type: 'misc', key: 'init' });
+  });
+
+  it('treats death and init requests as answerable, other misc requests not', () => {
+    expect(MonksTokenBarBridge.isAnswerable({ type: 'misc', key: 'death' })).toBe(true);
+    expect(MonksTokenBarBridge.isAnswerable({ type: 'misc', key: 'init' })).toBe(true);
+    expect(MonksTokenBarBridge.isAnswerable({ type: 'misc', key: 'other' })).toBe(false);
+    expect(MonksTokenBarBridge.isAnswerable({ type: 'tool', key: 'thief' })).toBe(false);
+  });
+
+  it('matches a DDB death save to a pending death save card', () => {
+    const cards = [{
+      id: 'm1',
+      flags: {
+        what: 'savingthrow',
+        requests: [{ type: 'misc', key: 'death', name: 'MonksTokenBar.DeathSavingThrow' }],
+        tokenA: { id: 'A', actorid: 'actor1' }
+      }
+    }];
+    const wanted = MonksTokenBarBridge.mapDDBRoll(ddbRoll('save', 'Death'));
+    expect(MonksTokenBarBridge.findMatch(cards, 'actor1', wanted)).toEqual({
+      messageId: 'm1', tokenId: 'A', request: cards[0].flags.requests[0]
+    });
+    expect(MonksTokenBarBridge.hasDDBRequest(cards[0].flags)).toBe(true);
   });
 });

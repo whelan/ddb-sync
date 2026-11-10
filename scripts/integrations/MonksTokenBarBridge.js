@@ -1,5 +1,6 @@
 import { Logger } from '../utils/Logger.js';
 import { ABILITY_MAP, SKILL_MAP } from '../dice/DDBRollKeys.js';
+import { DDBRollInjector } from '../core/overrides/DDBRollInjector.js';
 
 /**
  * Monk's TokenBar Bridge
@@ -62,12 +63,16 @@ export class MonksTokenBarBridge {
    * Map a DDB roll to the TokenBar request it answers.
    * @param {Object} rollData - DDB dice/roll/fulfilled payload
    * @returns {{type: string, key: string}|null} null for rolls TokenBar
-   *   requests are not answered with (attacks, damage, death saves, initiative)
+   *   requests are not answered with (attacks, damage, generic rolls)
    */
   static mapDDBRoll(rollData) {
     const rollType = String(rollData?.rolls?.[0]?.rollType || rollData?.rollType || '').toLowerCase();
     const action = String(rollData?.action || '').trim().toLowerCase();
     if (!action) return null;
+
+    // Same detection as InitiativeRollHandler / DeathSaveRollHandler
+    if (action === 'initiative' || rollType === 'initiative') return { type: 'misc', key: 'init' };
+    if (action === 'death' || action.startsWith('death save')) return { type: 'misc', key: 'death' };
 
     if (rollType === 'save') {
       const key = ABILITY_MAP[action];
@@ -78,6 +83,30 @@ export class MonksTokenBarBridge {
       if (ABILITY_MAP[action]) return { type: 'ability', key: ABILITY_MAP[action] };
     }
     return null;
+  }
+
+  /**
+   * Can a DDB roll answer this TokenBar request? Saves, ability and skill
+   * checks, plus the dnd5e "misc" requests for death saves and initiative.
+   * @param {Object} request - One of the card's requests
+   * @returns {boolean}
+   */
+  static isAnswerable(request) {
+    if (['save', 'ability', 'skill'].includes(request?.type)) return true;
+    return request?.type === 'misc' && ['death', 'init'].includes(request?.key);
+  }
+
+  /**
+   * TokenBar stores some request names as i18n keys (e.g. death saves).
+   * @param {string} text
+   * @returns {string}
+   */
+  static localize(text) {
+    try {
+      return globalThis.game?.i18n?.localize?.(text) ?? text;
+    } catch {
+      return text;
+    }
   }
 
   /**
@@ -94,7 +123,7 @@ export class MonksTokenBarBridge {
    */
   static hasDDBRequest(flags) {
     return MonksTokenBarBridge.isRequestCard(flags) &&
-      flags.requests.some(r => ['save', 'ability', 'skill'].includes(r?.type));
+      flags.requests.some(r => MonksTokenBarBridge.isAnswerable(r));
   }
 
   /**
@@ -146,8 +175,9 @@ export class MonksTokenBarBridge {
    */
   static requestLabel(requests) {
     return (requests || [])
-      .filter(r => ['save', 'ability', 'skill'].includes(r?.type))
-      .map(r => String(r.name || `${r.key} ${r.type}`).replace(/<[^>]*>/g, '').trim())
+      .filter(r => MonksTokenBarBridge.isAnswerable(r))
+      .map(r => MonksTokenBarBridge.localize(r.name || `${r.key} ${r.type}`))
+      .map(r => String(r).replace(/<[^>]*>/g, '').trim())
       .filter(Boolean)
       .join(' / ');
   }
@@ -236,6 +266,7 @@ export class MonksTokenBarBridge {
         message,
         true
       );
+      if (wanted.type === 'misc' && wanted.key === 'init') await this._setInitiative(actor, roll.total);
       this.logger.log(`DDB Sync | Filled DDB ${wanted.type} ${wanted.key} for ${actor.name} into TokenBar card ${match.messageId}`);
       return true;
     } catch (err) {
@@ -252,10 +283,15 @@ export class MonksTokenBarBridge {
    * @private
    */
   async _buildRoll(actor, wanted, rollData) {
+    if (wanted.type === 'misc' && wanted.key === 'death') {
+      const systemRoll = await this._systemDeathSave(actor, rollData);
+      if (systemRoll) return systemRoll;
+    }
     const ability = actor.system?.abilities?.[wanted.key];
     let modifier = 0;
     if (wanted.type === 'save') modifier = ability?.save?.value ?? ability?.mod ?? 0;
     else if (wanted.type === 'ability') modifier = ability?.check?.value ?? ability?.mod ?? 0;
+    else if (wanted.type === 'misc' && wanted.key === 'init') modifier = actor.system?.attributes?.init?.total ?? 0;
     else if (wanted.type === 'skill') {
       const skill = actor.system?.skills?.[wanted.key];
       modifier = skill?.total ?? skill?.mod ?? 0;
@@ -263,6 +299,38 @@ export class MonksTokenBarBridge {
     const { formula } = this.diceExtractor.parseDiceFormula(rollData, modifier);
     const dice = this.diceExtractor.extractDiceResults(rollData);
     return this.rollBuilder.buildRollWithDDBResults(formula, dice);
+  }
+
+  /**
+   * Death save through dnd5e's own rollDeathSave with the DDB dice injected,
+   * so the actor's successes/failures (and nat 1 / nat 20) update exactly as
+   * when TokenBar rolls it. No chat card: the TokenBar card shows the result.
+   * @returns {Promise<Roll|null>} null if dnd5e declined (stable, dead, ...)
+   * @private
+   */
+  async _systemDeathSave(actor, rollData) {
+    if (typeof actor.rollDeathSave !== 'function') return null;
+    const parsed = this.diceExtractor.parseDiceFormula(rollData);
+    DDBRollInjector.setPending(rollData);
+    try {
+      const result = await actor.rollDeathSave(
+        { advantage: parsed.isAdvantage, disadvantage: parsed.isDisadvantage },
+        { configure: false },
+        { create: false }
+      );
+      return (Array.isArray(result) ? result[0] : result) ?? null;
+    } finally {
+      DDBRollInjector.clearPending();
+    }
+  }
+
+  /**
+   * Put an initiative result into the combat tracker, like InitiativeRollHandler.
+   * @private
+   */
+  async _setInitiative(actor, total) {
+    const combatant = game.combat?.combatants?.find(c => c.actor?.id === actor.id);
+    if (combatant) await game.combat.setInitiative(combatant.id, total);
   }
 
   /**
