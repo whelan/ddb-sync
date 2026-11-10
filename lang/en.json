@@ -37,5 +37,9 @@
   "DDB.Settings.SpellTemplateCleanup.Turn": "At the next turn",
   "DDB.Settings.SpellTemplateCleanup.Round": "At the next round",
   "DDB.SpellTemplate.Place": "Place template",
-  "DDB.SpellTemplate.Unavailable": "DDB Sync: this spell's template cannot be placed (no active scene or dnd5e template support)."
+  "DDB.SpellTemplate.Unavailable": "DDB Sync: this spell's template cannot be placed (no active scene or dnd5e template support).",
+
+  "DDB.Settings.MonksTokenBarRequests.Name": "Answer Monk's TokenBar Roll Requests from D&D Beyond",
+  "DDB.Settings.MonksTokenBarRequests.Hint": "When Monk's TokenBar requests a saving throw, ability check or skill check from tokens mapped to a D&D Beyond character, whisper the player to roll it on D&D Beyond and fill that roll into the request card as the token's result (it is not posted to chat a second time). Rolling from the card's own buttons in Foundry still works.",
+  "DDB.MonksTokenBar.RollOnDDB": "Roll {request} on D&D Beyond ({actor})."
 }

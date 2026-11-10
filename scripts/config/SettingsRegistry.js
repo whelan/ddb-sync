@@ -165,6 +165,16 @@ export class SettingsRegistry {
       default: true
     });
 
+    // Answer Monk's TokenBar roll requests with D&D Beyond rolls
+    game.settings.register(this.MODULE_ID, 'monksTokenBarRequests', {
+      name: 'DDB.Settings.MonksTokenBarRequests.Name',
+      hint: 'DDB.Settings.MonksTokenBarRequests.Hint',
+      scope: 'world',
+      config: true,
+      type: Boolean,
+      default: true
+    });
+
     // When spell templates placed from those cards are removed in combat
     game.settings.register(this.MODULE_ID, 'spellTemplateCleanup', {
       name: 'DDB.Settings.SpellTemplateCleanup.Name',

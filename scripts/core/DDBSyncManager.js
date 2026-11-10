@@ -20,6 +20,7 @@ import { SaveRollHandler } from '../dice/handlers/SaveRollHandler.js';
 import { DeathSaveRollHandler } from '../dice/handlers/DeathSaveRollHandler.js';
 import { AbilityCheckRollHandler } from '../dice/handlers/AbilityCheckRollHandler.js';
 import { AttackRollHandler } from '../dice/handlers/AttackRollHandler.js';
+import { MonksTokenBarBridge } from '../integrations/MonksTokenBarBridge.js';
 
 /**
  * DDB Sync Manager - Main Orchestrator
@@ -49,9 +50,14 @@ export class DDBSyncManager {
       recentlyAnnounced: (actorId) => this.spellCardService.recentlyAnnounced(actorId)
     });
 
+    // Monk's TokenBar "Request Roll" cards answered by D&D Beyond rolls (inactive without the module)
+    const { diceExtractor, rollBuilder } = this.diceRollHandler.getServices();
+    this.tokenBarBridge = new MonksTokenBarBridge({ characterMapper: this.characterMapper, diceExtractor, rollBuilder });
+    this.tokenBarBridge.registerHooks();
+
     // Initialize dice roll message handler (for DDB dice mode) with character mapper and dice roll handler
     this.diceRollMessageHandler = new DiceRollMessageHandler(
-      this.characterMapper, this.diceRollHandler, this.spellCardService
+      this.characterMapper, this.diceRollHandler, this.spellCardService, this.tokenBarBridge
     );
 
     // Initialize dice input dialog with handler injection

@@ -4,6 +4,7 @@
 - Spell slots spent on D&D Beyond are announced in Foundry chat (settings `Notify Spell Slots` and `GM only`). Skipped when a spell card was just posted for that actor.
 - Spell rolls from D&D Beyond post the spell's dnd5e card once per cast (setting `postSpellCards`). Nothing is consumed or rolled.
 - Area spells get a "Place template" button on the card for the GM and the actor's owners. Placement uses dnd5e 6's `TemplatePlacement`, which creates Regions; the old MeasuredTemplate / AbilityTemplate path and pre-activity item targets are gone. Placed areas are removed at the next turn or round, or when combat ends (setting `spellTemplateCleanup`, default: round).
+- Monk's TokenBar "Request Roll" works with D&D Beyond: tokens mapped to a DDB character get a whisper to roll the save / ability check / skill check on D&D Beyond, and the matching DDB roll is filled into the TokenBar card as that token's result (DC pass/fail by TokenBar) instead of being posted separately. Rolls made from the card's own buttons still count. Setting `monksTokenBarRequests` (default on; needs `monks-tokenbar`).
 - Death saves use dnd5e 6's `rollDeathSave(config, dialog, message)` signature only.
 - The "cookie expired" prompt uses `DialogV2`; jQuery fallbacks in the dice mode selector and dice input dialog are removed (v14 passes HTMLElements).
 

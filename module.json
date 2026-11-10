@@ -77,6 +77,11 @@
         "id": "midi-qol",
         "type": "module",
         "compatibility": {}
+      },
+      {
+        "id": "monks-tokenbar",
+        "type": "module",
+        "compatibility": {}
       }
     ]
   }
