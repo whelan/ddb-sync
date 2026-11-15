@@ -1,3 +1,6 @@
+# 0.0.17
+- Fixed: a roll that ddb-sync starts from a D&D Beyond roll (death save, Monk's TokenBar answer) hung forever when the character's dice mode was **D&D Beyond** or **Manual**. The dice prompt opened and waited for a D&D Beyond roll that had already arrived. The prompt is now skipped while D&D Beyond's dice are queued for the roll.
+
 # 0.0.16
 - **Foundry v14 and dnd5e 6 only.** Foundry v13 and dnd5e 5.x and earlier are no longer supported; stay on 0.0.15 if you need them. All v13 / dnd5e ≤5 code paths are removed.
 - Fixed: rolls for player-owned actors were not forced public on Foundry v14. v14 ignores the old `rollMode: 'publicroll'` option; the module now passes `messageMode: 'public'` to core `Roll#toMessage` and the v14 message mode (`'public'`) to dnd5e's `rollMode` message configs (spell cards, death saves). GM-only actors still follow the GM's chat mode dropdown.

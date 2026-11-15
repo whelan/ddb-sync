@@ -56,6 +56,19 @@ export class DDBRollInjector {
     }
   }
 
+  /**
+   * Are DDB dice waiting for the next system roll? A roll that will be fed
+   * D&D Beyond's dice must not open the manual/DDB dice prompt: the DDB roll
+   * it would wait for has already arrived.
+   * @returns {boolean}
+   */
+  static hasPending() {
+    const p = this._pending;
+    if (!p) return false;
+    if (Date.now() - p.ts > this.TTL) { this._pending = null; return false; }
+    return true;
+  }
+
   /** Drop any pending DDB dice (e.g. when the system roll it was meant for never happened). */
   static clearPending() {
     this._pending = null;

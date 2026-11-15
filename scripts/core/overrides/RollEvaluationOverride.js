@@ -1,4 +1,5 @@
 import { DiceInputDialog } from '../../ui/DiceInputDialog.js';
+import { DDBRollInjector } from './DDBRollInjector.js';
 
 /**
  * RollEvaluationOverride - Manages Roll.prototype.evaluate override
@@ -72,7 +73,10 @@ export class RollEvaluationOverride {
     // Check actor's diceMode flag
     const diceMode = actor.getFlag('ddb-sync', 'diceMode') || 'normal';
 
-    if (diceMode === 'normal') {
+    // A system roll started from a D&D Beyond roll (death save, TokenBar
+    // answer, ...) already has DDB's dice queued in the injector. Prompting
+    // would wait for a DDB roll that has already arrived and hang the roll.
+    if (diceMode === 'normal' || DDBRollInjector.hasPending()) {
       // Use default Foundry behavior
       return this.originalRollEvaluate.call(roll, options);
     }
