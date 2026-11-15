@@ -6,6 +6,7 @@ import { DamageSyncService } from './services/DamageSyncService.js';
 import { ConditionSyncService } from './services/ConditionSyncService.js';
 import { SpellSlotNotifier } from './services/SpellSlotNotifier.js';
 import { SpellCardService } from './services/SpellCardService.js';
+import { SpellFlavorService } from './services/SpellFlavorService.js';
 import { MessageDispatcher } from './services/MessageDispatcher.js';
 import { CharacterUpdateMessageHandler } from './handlers/CharacterUpdateMessageHandler.js';
 import { DiceRollMessageHandler } from './handlers/DiceRollMessageHandler.js';
@@ -45,7 +46,13 @@ export class DDBSyncManager {
     this.diceRollHandler = new DiceRollHandler();
 
     // Spell cards on spell rolls; the slot notifier stays quiet for a cast that already got a card
-    this.spellCardService = new SpellCardService({ characterMapper: this.characterMapper });
+    // Barovia spell flavor: GM whisper per cast, from DDB rolls (via SpellCardService)
+    // and from Foundry-sheet casts (dnd5e usage messages, see SpellFlavorService)
+    this.spellFlavorService = new SpellFlavorService();
+    this.spellFlavorService.registerHooks();
+    this.spellCardService = new SpellCardService({
+      characterMapper: this.characterMapper, spellFlavorService: this.spellFlavorService
+    });
     this.spellSlotNotifier = new SpellSlotNotifier({
       recentlyAnnounced: (actorId) => this.spellCardService.recentlyAnnounced(actorId)
     });

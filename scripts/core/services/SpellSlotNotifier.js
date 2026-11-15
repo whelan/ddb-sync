@@ -13,6 +13,8 @@ import { Logger } from '../../utils/Logger.js';
  * baseline - otherwise every slot already spent would be announced at once.
  * DDB does not say which spell was cast, only the slot level; cantrips and
  * free casts spend no slot and are therefore not reported.
+ * For the same reason these casts get no Barovia spell flavor whisper
+ * (SpellFlavorService needs the spell name).
  *
  * When SpellCardService already posted the spell's card for this actor a
  * moment ago, the slot message is skipped (the baseline is still updated).

@@ -24,11 +24,14 @@ export class SpellCardService {
   /**
    * @param {Object} [deps]
    * @param {{getFoundryActor: Function}} [deps.characterMapper]
+   * @param {{whisper: Function}} [deps.spellFlavorService] - GM flavor whisper per cast
    * @param {Function} [deps.now] - Clock, injectable for tests
    */
-  constructor({ characterMapper = null, now = () => Date.now() } = {}) {
+  constructor({ characterMapper = null, spellFlavorService = null, now = () => Date.now() } = {}) {
     this.logger = Logger;
     this.characterMapper = characterMapper;
+    /** @type {{whisper: Function}|null} Barovia spell flavor whisper (SpellFlavorService) */
+    this.spellFlavorService = spellFlavorService;
     this.now = now;
     /** @type {Map<string, number>} cast key -> time the card was posted */
     this.lastCast = new Map();
@@ -141,7 +144,8 @@ export class SpellCardService {
    */
   async handleRoll(rollData, actor = null) {
     try {
-      if (!this.isEnabled()) return null;
+      const cardsOn = this.isEnabled();
+      if (!cardsOn && !this.spellFlavorService) return null;
       const action = rollData?.action;
       const entityId = rollData?.context?.entityId ?? rollData?.entityId;
       if (!action || !entityId) return null;
@@ -151,6 +155,13 @@ export class SpellCardService {
 
       const spell = SpellCardService.findSpell(actor.items, action);
       if (!spell) return null;
+
+      // Barovia flavor whisper to the GM: independent of the card setting,
+      // de-duplicated per actor + spell inside SpellFlavorService (shared with
+      // Foundry-sheet casts). whisper() never throws; not awaited so a slow
+      // journal read never delays the card.
+      if (this.spellFlavorService) void this.spellFlavorService.whisper(actor, spell);
+      if (!cardsOn) return null;
 
       const castKey = `${entityId}|${SpellCardService.normalizeName(spell.name)}`;
       const claimed = SpellCardService.claimCast(

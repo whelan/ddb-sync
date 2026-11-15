@@ -165,6 +165,16 @@ export class SettingsRegistry {
       default: true
     });
 
+    // Whisper the GM the Barovia read-aloud when a player character casts a spell
+    game.settings.register(this.MODULE_ID, 'spellFlavorWhispers', {
+      name: 'DDB.Settings.SpellFlavorWhispers.Name',
+      hint: 'DDB.Settings.SpellFlavorWhispers.Hint',
+      scope: 'world',
+      config: true,
+      type: Boolean,
+      default: true
+    });
+
     // Answer Monk's TokenBar roll requests with D&D Beyond rolls
     game.settings.register(this.MODULE_ID, 'monksTokenBarRequests', {
       name: 'DDB.Settings.MonksTokenBarRequests.Name',
