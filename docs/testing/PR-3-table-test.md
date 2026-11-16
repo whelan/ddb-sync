@@ -18,6 +18,8 @@ Jest (`npm test`) er grøn: 21 suites, 328 tests. **Intet er kørt i en rigtig F
 
 ## Del 1 — Testen der skal udføres
 
+> **Kørt 2026-11-16** i Forge-verdenen (Foundry 14.370, dnd5e 6.0.6, TokenBar 14) med Varis (Andreas) og Pyrax. To fejl fundet og rettet undervejs: 0.0.17 (death save/TokenBar-rul hang i dice mode D&D Beyond) og 0.0.18 (ét kort og én whisper pr. kast over et 60 s glidende vindue). Ikke dækket: C2–C8 (ingen area-spell med rul på holdet), D6 og D10.
+
 ### Forberedelse
 
 1. Foundry **v14**, dnd5e **6.x**, Monk's TokenBar **14.x** (valgfrit: Dice So Nice).
@@ -36,41 +38,41 @@ Skriv resultat i kolonnen ✓/✗ og noter konsol-fejl ved hvert ✗.
 
 | # | Gør | Forventet | ✓/✗ |
 |---|---|---|---|
-| A1 | Indstil GM's roll mode til **Private GM Roll**. Spilleren slår et ability check på D&D Beyond. | Rullet kommer i chatten **offentligt** (spillerejet actor). | |
-| A2 | Spilleren slår angreb + skade med et våben på D&D Beyond. | To rul i chatten med D&D Beyonds terningværdier og Foundrys modifier. | |
-| A3 | Spilleren ændrer HP på D&D Beyond. | HP opdateres på actoren. | |
-| A4 | Spilleren sætter *Poisoned* på D&D Beyond, fjerner den igen. | Condition sættes og fjernes på tokenet. | |
-| A5 | Spilleren slår en death save på D&D Beyond (uden TokenBar). | dnd5e's death save-kort; success/failure tælles på actoren. | |
-| A6 | Spilleren slår initiative på D&D Beyond, mens kampen er startet. | Rul i chatten, og initiative sat i combat trackeren. | |
-| A7 | Åbn karakterens sheet. | Rullemenuen (Normal / Manual / D&D Beyond) vises og kan ændres. | |
-| A8 | Sæt menuen til **Manual**, klik et ability check på sheetet. | Vindue til at taste terningværdier; resultatet bruges. Sæt tilbage til Normal. | |
-| A9 | Sæt menuen til **D&D Beyond**, klik et save på sheetet, slå samme save på D&D Beyond. | Foundry venter og bruger D&D Beyonds terninger. Sæt tilbage til Normal. | |
-| A10 | Sæt en ugyldig CobaltSession-cookie og genforbind. | Dialogen "D&D Beyond Cookie Expired" åbner (DialogV2), knappen åbner indstillinger. Sæt gyldig cookie igen. | |
-| A11 | Åbn Game Settings-fanen som GM. | Knappen til Character Mapping findes. | |
+| A1 | Indstil GM's roll mode til **Private GM Roll**. Spilleren slår et ability check på D&D Beyond. | Rullet kommer i chatten **offentligt** (spillerejet actor). | ✓ |
+| A2 | Spilleren slår angreb + skade med et våben på D&D Beyond. | To rul i chatten med D&D Beyonds terningværdier og Foundrys modifier. | ✓ |
+| A3 | Spilleren ændrer HP på D&D Beyond. | HP opdateres på actoren. | ✓ |
+| A4 | Spilleren sætter *Poisoned* på D&D Beyond, fjerner den igen. | Condition sættes og fjernes på tokenet. | ✓ |
+| A5 | Spilleren slår en death save på D&D Beyond (uden TokenBar). | dnd5e's death save-kort; success/failure tælles på actoren. | ✓ (0.0.17: hang i dice mode D&D Beyond rettet) |
+| A6 | Spilleren slår initiative på D&D Beyond, mens kampen er startet. | Rul i chatten, og initiative sat i combat trackeren. | ✓ |
+| A7 | Åbn karakterens sheet. | Rullemenuen (Normal / Manual / D&D Beyond) vises og kan ændres. | ✓ |
+| A8 | Sæt menuen til **Manual**, klik et ability check på sheetet. | Vindue til at taste terningværdier; resultatet bruges. Sæt tilbage til Normal. | — sprunget over (Manual bruges ikke) |
+| A9 | Sæt menuen til **D&D Beyond**, klik et save på sheetet, slå samme save på D&D Beyond. | Foundry venter og bruger D&D Beyonds terninger. Sæt tilbage til Normal. | — TokenBar overtager sheet-klik, se D1–D2 |
+| A10 | Sæt en ugyldig CobaltSession-cookie og genforbind. | Dialogen "D&D Beyond Cookie Expired" åbner (DialogV2), knappen åbner indstillinger. Sæt gyldig cookie igen. | — sprunget over |
+| A11 | Åbn Game Settings-fanen som GM. | Knappen til Character Mapping findes. | — |
 
 ### B. Spell slot-besked
 
 | # | Gør | Forventet | ✓/✗ |
 |---|---|---|---|
-| B1 | Genindlæs Foundry. Spilleren kaster *Shield* (uden rul) på D&D Beyond. | **Ingen** besked første gang (første opdatering er kun udgangspunkt). | |
-| B2 | Kast *Shield* igen. | Chat: "<navn> casts a spell (spent level 1 spell slot on D&D Beyond)". | |
-| B3 | Warlock (hvis muligt): brug en pact slot. | "…level N pact magic slot…". | |
-| B4 | Tag long rest på D&D Beyond. | Ingen besked. | |
-| B5 | Slå **Spell Announcements to GM Only** til, kast igen. | Beskeden er en whisper til GM. Slå fra igen. | |
+| B1 | Genindlæs Foundry. Spilleren kaster *Shield* (uden rul) på D&D Beyond. | **Ingen** besked første gang (første opdatering er kun udgangspunkt). | ✓ |
+| B2 | Kast *Shield* igen. | Chat: "<navn> casts a spell (spent level 1 spell slot on D&D Beyond)". | ✓ |
+| B3 | Warlock (hvis muligt): brug en pact slot. | "…level N pact magic slot…". | — ingen warlock-slot på testkarakteren |
+| B4 | Tag long rest på D&D Beyond. | Ingen besked. | — sprunget over |
+| B5 | Slå **Spell Announcements to GM Only** til, kast igen. | Beskeden er en whisper til GM. Slå fra igen. | ✓ |
 
 ### C. Spell-kort og templates (Regions)
 
 | # | Gør | Forventet | ✓/✗ |
 |---|---|---|---|
-| C1 | Kast *Fireball* på D&D Beyond (save + skade). | **Ét** dnd5e spell-kort i chatten over rullene, offentligt. Ingen ekstra slot-besked (inden for 15 s). | |
-| C2 | Se kortet som GM og som spiller. | Knappen **Place template** vises for begge. En tredje spiller uden ejerskab ser den ikke. | |
-| C3 | Spilleren klikker Place template og placerer. | En **Region** oprettes med dnd5e's egen placering (samme form og størrelse som fra sheetet). | |
-| C4 | Med **Remove Spell Templates in Combat = At the next round**: start kampen, placer, skift tur, skift runde. | Regionen står efter tur-skift og fjernes ved ny runde. | |
-| C5 | Indstil **At the next turn**, placer, skift tur. | Regionen fjernes ved tur-skift. | |
-| C6 | Placer uden for kamp. | Regionen bliver stående. | |
-| C7 | Placer i kamp, slet kampen. | Regionen fjernes (medmindre indstillingen er Never). | |
-| C8 | Kast en spell, karakteren **ikke** har i Foundry. | Intet kort, rullene kommer som normalt. | |
-| C9 | Slå **postSpellCards** fra, kast *Fireball*. | Intet kort. Slå til igen. | |
+| C1 | Kast *Fireball* på D&D Beyond (save + skade). | **Ét** dnd5e spell-kort i chatten over rullene, offentligt. Ingen ekstra slot-besked (inden for 15 s). | ✓ (0.0.18: to kort ved 31 s mellem angreb og skade rettet) |
+| C2 | Se kortet som GM og som spiller. | Knappen **Place template** vises for begge. En tredje spiller uden ejerskab ser den ikke. | — ingen area-spell med rul på holdet |
+| C3 | Spilleren klikker Place template og placerer. | En **Region** oprettes med dnd5e's egen placering (samme form og størrelse som fra sheetet). | — |
+| C4 | Med **Remove Spell Templates in Combat = At the next round**: start kampen, placer, skift tur, skift runde. | Regionen står efter tur-skift og fjernes ved ny runde. | — |
+| C5 | Indstil **At the next turn**, placer, skift tur. | Regionen fjernes ved tur-skift. | — |
+| C6 | Placer uden for kamp. | Regionen bliver stående. | — |
+| C7 | Placer i kamp, slet kampen. | Regionen fjernes (medmindre indstillingen er Never). | — |
+| C8 | Kast en spell, karakteren **ikke** har i Foundry. | Intet kort, rullene kommer som normalt. | — |
+| C9 | Slå **postSpellCards** fra, kast *Fireball*. | Intet kort. Slå til igen. | ✓ |
 
 ### D. Monk's TokenBar
 
@@ -78,17 +80,17 @@ Kampen skal være startet for D5.
 
 | # | Gør | Forventet | ✓/✗ |
 |---|---|---|---|
-| D1 | TokenBar → Request Roll: Wisdom save, DC 15, for testkarakteren. | Spilleren (og GM) får whisper: "Roll Wisdom Saving Throw on D&D Beyond (<navn>)". | |
-| D2 | Spilleren slår Wisdom save på D&D Beyond. | Resultatet står i TokenBar-kortet med pass/fail mod DC 15. **Ingen** separat chatbesked. | |
-| D3 | Request Roll: Perception (skill) og bagefter Strength (ability check). Slå dem på D&D Beyond. | Begge lander i deres kort. | |
-| D4 | Request Roll: Death Saving Throw. Slå death save på D&D Beyond. | Resultat i kortet; actorens death save success/failure tæller op; intet ekstra dnd5e-kort. | |
-| D5 | Request Roll: Initiative. Slå initiative på D&D Beyond. | Resultat i kortet **og** i combat trackeren. | |
-| D6 | Request Roll for to tokens; den ene slår med kortets egen knap i Foundry, den anden på D&D Beyond. | Begge resultater står; ingen overskrives. | |
-| D7 | Slå et save på D&D Beyond, som **ikke** er anmodet. | Rullet kommer i chatten som normalt. | |
-| D8 | Request Roll med **advantage** på D&D Beyond. | Kortets total matcher D&D Beyonds (højeste terning). | |
-| D9 | Lav en anmodning, genindlæs GM-klienten, slå rullet på D&D Beyond. | Rullet lander stadig i kortet; ingen ny whisper ved genindlæsning. | |
-| D10 | Med Dice So Nice: gentag D2. | Terningerne vises højst én gang. | |
-| D11 | Slå **monksTokenBarRequests** fra, gentag D1–D2. | Ingen whisper; rullet kommer som almindelig chatbesked. | |
+| D1 | TokenBar → Request Roll: Wisdom save, DC 15, for testkarakteren. | Spilleren (og GM) får whisper: "Roll Wisdom Saving Throw on D&D Beyond (<navn>)". | ✓ |
+| D2 | Spilleren slår Wisdom save på D&D Beyond. | Resultatet står i TokenBar-kortet med pass/fail mod DC 15. **Ingen** separat chatbesked. | ✓ |
+| D3 | Request Roll: Perception (skill) og bagefter Strength (ability check). Slå dem på D&D Beyond. | Begge lander i deres kort. | ✓ |
+| D4 | Request Roll: Death Saving Throw. Slå death save på D&D Beyond. | Resultat i kortet; actorens death save success/failure tæller op; intet ekstra dnd5e-kort. | ✓ |
+| D5 | Request Roll: Initiative. Slå initiative på D&D Beyond. | Resultat i kortet **og** i combat trackeren. | — TokenBar tilbyder ikke Initiative i Request Roll |
+| D6 | Request Roll for to tokens; den ene slår med kortets egen knap i Foundry, den anden på D&D Beyond. | Begge resultater står; ingen overskrives. | — |
+| D7 | Slå et save på D&D Beyond, som **ikke** er anmodet. | Rullet kommer i chatten som normalt. | ✓ |
+| D8 | Request Roll med **advantage** på D&D Beyond. | Kortets total matcher D&D Beyonds (højeste terning). | ✓ |
+| D9 | Lav en anmodning, genindlæs GM-klienten, slå rullet på D&D Beyond. | Rullet lander stadig i kortet; ingen ny whisper ved genindlæsning. | ✓ |
+| D10 | Med Dice So Nice: gentag D2. | Terningerne vises højst én gang. | — |
+| D11 | Slå **monksTokenBarRequests** fra, gentag D1–D2. | Ingen whisper; rullet kommer som almindelig chatbesked. | ✓ |
 
 ### E. Barovia spell flavor
 
@@ -96,11 +98,11 @@ Journalen **Barovia Spell Flavor** skal være pushet til verdenen (GM-only). Tes
 
 | # | Gør | Forventet | ✓/✗ |
 |---|---|---|---|
-| E1 | Spilleren slår en spell med entry (fx *Healing Word*) på D&D Beyond. | GM får **én** whisper "Healing Word · <navn>" med den danske read-aloud. Spilleren ser intet. | |
-| E2 | Spilleren kaster samme spell fra Foundry-sheetet. | GM får én whisper. Ingen dobbelt whisper, heller ikke når kast fra D&D Beyond og sheet sker inden for 60 sek. af hinanden. | |
-| E3 | Kast en spell uden entry i journalen. | Whisper med skolens standardtekst (fx Evocation). | |
-| E4 | Kast en karakter-spell, som **ikke** er afkrydset i Reveal log. | Whisperen har linjen "First use — narrate it and tick the Reveal log". | |
-| E5 | Omdøb journalen midlertidigt og kast en spell. | Ingen whisper, ingen fejl i konsollen; rul og kort virker som normalt. Navngiv journalen tilbage. | |
+| E1 | Spilleren slår en spell med entry (fx *Healing Word*) på D&D Beyond. | GM får **én** whisper "Healing Word · <navn>" med den danske read-aloud. Spilleren ser intet. | ✓ |
+| E2 | Spilleren kaster samme spell fra Foundry-sheetet. | GM får én whisper. Ingen dobbelt whisper, heller ikke når kast fra D&D Beyond og sheet sker inden for 60 sek. af hinanden. | ✓ |
+| E3 | Kast en spell uden entry i journalen. | Whisper med skolens standardtekst (fx Evocation). | ✓ |
+| E4 | Kast en karakter-spell, som **ikke** er afkrydset i Reveal log. | Whisperen har linjen "First use — narrate it and tick the Reveal log". | ✓ |
+| E5 | Omdøb journalen midlertidigt og kast en spell. | Ingen whisper, ingen fejl i konsollen; rul og kort virker som normalt. Navngiv journalen tilbage. | ✓ |
 
 ### Kendte risici (tjek særligt)
 
