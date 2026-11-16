@@ -5,7 +5,7 @@ import { DiceExtractor } from '../../dice/DiceExtractor.js';
  *
  * Robust replacement for the (dnd5e-v4-era) Roll.prototype.evaluate override.
  *
- * dnd5e v5 evaluates attack/damage rolls through its own BasicRoll subclasses
+ * dnd5e 6 evaluates attack/damage rolls through its own BasicRoll subclasses
  * (D20Roll / DamageRoll), so patching the generic Roll.prototype.evaluate does
  * not let us reliably swap dice values. Instead we wrap the *system* roll
  * classes' evaluate, let dnd5e roll normally (advantage, modifiers, crit logic
@@ -54,6 +54,19 @@ export class DDBRollInjector {
     } catch (e) {
       this.logger.error('DDB Sync | Injector setPending failed:', e);
     }
+  }
+
+  /**
+   * Are DDB dice waiting for the next system roll? A roll that will be fed
+   * D&D Beyond's dice must not open the manual/DDB dice prompt: the DDB roll
+   * it would wait for has already arrived.
+   * @returns {boolean}
+   */
+  static hasPending() {
+    const p = this._pending;
+    if (!p) return false;
+    if (Date.now() - p.ts > this.TTL) { this._pending = null; return false; }
+    return true;
   }
 
   /** Drop any pending DDB dice (e.g. when the system roll it was meant for never happened). */

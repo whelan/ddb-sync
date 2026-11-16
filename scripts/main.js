@@ -4,10 +4,12 @@ import { DDBSyncManager } from './core/DDBSyncManager.js';
 import { RollEvaluationOverride } from './core/overrides/RollEvaluationOverride.js';
 import { DiceModeSelector } from './ui/DiceModeSelector.js';
 import { DDBRollInjector } from './core/overrides/DDBRollInjector.js';
+import { SpellTemplateService } from './core/services/SpellTemplateService.js';
 
 // Initialize on Foundry ready
 Hooks.once('init', () => {
-
+  // Every client: "Place template" button on spell cards, GM-side template cleanup
+  SpellTemplateService.registerHooks();
 });
 
 // Connect on Foundry ready if enabled
@@ -24,7 +26,7 @@ Hooks.once('ready', async () => {
   );
   rollEvaluationOverride.initialize();
 
-  // dnd5e v5: inject DDB dice into the system's own D20Roll/DamageRoll classes.
+  // dnd5e 6: inject DDB dice into the system's own D20Roll/DamageRoll classes.
   DDBRollInjector.install();
   globalThis.DDBSyncInjector = DDBRollInjector;
 
@@ -74,7 +76,7 @@ Hooks.on('renderSettings', (app, html) => {
   
   button.addEventListener('click', (ev) => {
     ev.preventDefault();
-    new CharacterMappingApplication().render(true);
+    new CharacterMappingApplication().render({ force: true });
   });
   
   if (settingsGame) {

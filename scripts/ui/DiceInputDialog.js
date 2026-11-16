@@ -68,7 +68,7 @@ export class DiceInputDialog {
         close: () => resolve(null) //TODO: close handler not called
       };
       new foundry.applications.api.DialogV2(options)
-        .render(true)
+        .render({ force: true })
         .then((dialog) => this._setupInputValidation(dialog.window?.content, diceTerms));
     });
   }
@@ -136,7 +136,7 @@ export class DiceInputDialog {
         }
       };
       new foundry.applications.api.DialogV2(options)
-        .render(true)
+        .render({ force: true })
         .then((dialog) => {
           const html = dialog.window?.content;
           // Set up listener for DDB roll messages
@@ -153,7 +153,7 @@ export class DiceInputDialog {
    * @private
    */
   _setupInputValidation(html, diceTerms) {
-    const form = html.querySelector ? html.querySelector('form') : html.find('form')[0];
+    const form = html?.querySelector('form');
     const inputs = form?.querySelectorAll('input[type="number"]') || [];
     // DialogV2 renders buttons in a separate footer, so we need to find the dialog root
     const dialogElement = form?.closest('.application') || html.closest?.('.application') || html;
@@ -194,7 +194,7 @@ export class DiceInputDialog {
    * @private
    */
   _setupDDBRollListener(html, diceTerms, actor, itemName) {
-    const form = html.querySelector ? html.querySelector('form') : html.find('form')[0];
+    const form = html?.querySelector('form');
     // DialogV2 renders buttons in a separate footer, so we need to find the dialog root
     const dialogElement = form?.closest('.application') || html.closest?.('.application') || html;
     const rollButton = dialogElement.querySelector('button[data-action="roll"]');
@@ -403,8 +403,7 @@ export class DiceInputDialog {
     diceTerms.forEach((term, termIndex) => {
       const dieResults = [];
       for (let i = 0; i < term.number; i++) {
-        const input = form.querySelector(`input[name="die-${termIndex}-${i}"]`) ||
-                      $(form).find(`input[name="die-${termIndex}-${i}"]`)[0];
+        const input = form.querySelector(`input[name="die-${termIndex}-${i}"]`);
         const value = parseInt(input?.value) || 1;
         // Clamp value to valid range
         dieResults.push(Math.max(1, Math.min(term.faces, value)));

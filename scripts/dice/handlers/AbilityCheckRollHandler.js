@@ -1,6 +1,7 @@
 import { IRollHandler } from '../interfaces/IRollHandler.js';
 import { RollModePolicy } from '../RollModePolicy.js';
 import { Logger } from '../../utils/Logger.js';
+import { ABILITY_MAP, SKILL_MAP } from '../DDBRollKeys.js';
 
 /**
  * Ability Check Roll Handler
@@ -16,43 +17,10 @@ export class AbilityCheckRollHandler extends IRollHandler {
     this.logger = Logger;
 
     // Map DDB ability names to Foundry ability abbreviations
-    this.abilityMap = {
-      'strength': 'str',
-      'dexterity': 'dex',
-      'constitution': 'con',
-      'intelligence': 'int',
-      'wisdom': 'wis',
-      'charisma': 'cha',
-      // Also support abbreviated forms from DDB
-      'str': 'str',
-      'dex': 'dex',
-      'con': 'con',
-      'int': 'int',
-      'wis': 'wis',
-      'cha': 'cha'
-    };
+    this.abilityMap = { ...ABILITY_MAP };
 
     // Map DDB skill names to Foundry skill keys
-    this.skillMap = {
-      'acrobatics': 'acr',
-      'animal handling': 'ani',
-      'arcana': 'arc',
-      'athletics': 'ath',
-      'deception': 'dec',
-      'history': 'his',
-      'insight': 'ins',
-      'intimidation': 'itm',
-      'investigation': 'inv',
-      'medicine': 'med',
-      'nature': 'nat',
-      'perception': 'prc',
-      'performance': 'prf',
-      'persuasion': 'per',
-      'religion': 'rel',
-      'sleight of hand': 'slt',
-      'stealth': 'ste',
-      'survival': 'sur'
-    };
+    this.skillMap = { ...SKILL_MAP };
   }
 
   usesCache() {

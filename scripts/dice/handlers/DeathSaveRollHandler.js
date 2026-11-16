@@ -57,30 +57,18 @@ export class DeathSaveRollHandler extends IRollHandler {
   }
 
   /**
-   * Call dnd5e's rollDeathSave without a configuration dialog.
-   * dnd5e v4+ takes (config, dialog, message); v3 and earlier take a single options object.
+   * Call dnd5e 6's rollDeathSave(config, dialog, message) without a configuration dialog.
+   * The message config's option is still named `rollMode` but takes a v14 message mode.
    * @private
    */
   async _rollSystemDeathSave(actor, parsed) {
-    const rollMode = RollModePolicy.messageOptions(actor).rollMode;
-    const major = parseInt(String(game.system?.version ?? '0').split('.')[0], 10);
-
-    if (major >= 4) {
-      const message = rollMode ? { rollMode } : {};
-      const result = await actor.rollDeathSave(
-        { advantage: parsed.isAdvantage, disadvantage: parsed.isDisadvantage },
-        { configure: false },
-        message
-      );
-      return Array.isArray(result) ? result[0] : result;
-    }
-
-    return actor.rollDeathSave({
-      fastForward: true,
-      advantage: parsed.isAdvantage,
-      disadvantage: parsed.isDisadvantage,
-      ...(rollMode ? { rollMode } : {})
-    });
+    const rollMode = RollModePolicy.messageMode(actor);
+    const result = await actor.rollDeathSave(
+      { advantage: parsed.isAdvantage, disadvantage: parsed.isDisadvantage },
+      { configure: false },
+      rollMode ? { rollMode } : {}
+    );
+    return Array.isArray(result) ? result[0] : result;
   }
 
   /** @private */

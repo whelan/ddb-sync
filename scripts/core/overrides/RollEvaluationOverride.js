@@ -1,4 +1,5 @@
 import { DiceInputDialog } from '../../ui/DiceInputDialog.js';
+import { DDBRollInjector } from './DDBRollInjector.js';
 
 /**
  * RollEvaluationOverride - Manages Roll.prototype.evaluate override
@@ -72,7 +73,10 @@ export class RollEvaluationOverride {
     // Check actor's diceMode flag
     const diceMode = actor.getFlag('ddb-sync', 'diceMode') || 'normal';
 
-    if (diceMode === 'normal') {
+    // A system roll started from a D&D Beyond roll (death save, TokenBar
+    // answer, ...) already has DDB's dice queued in the injector. Prompting
+    // would wait for a DDB roll that has already arrived and hang the roll.
+    if (diceMode === 'normal' || DDBRollInjector.hasPending()) {
       // Use default Foundry behavior
       return this.originalRollEvaluate.call(roll, options);
     }
@@ -132,10 +136,9 @@ export class RollEvaluationOverride {
     for (const term of roll.terms) {
       if (term instanceof foundry.dice.terms.Die) {
         const customDice = diceResults[resultIndex];
-        customDice.results.sort((a, b) => a - b); // Sort DDB results ascending
-        term.results.sort((a, b) => a.result - b.result); // Sort Foundry results ascending
-
         if (customDice && customDice.results) {
+          customDice.results.sort((a, b) => a - b); // Sort DDB results ascending
+          term.results.sort((a, b) => a.result - b.result); // Sort Foundry results ascending
           for (let i = 0; i < term.results.length && i < customDice.results.length; i++) {
             term.results[i].result = customDice.results[i];
           }

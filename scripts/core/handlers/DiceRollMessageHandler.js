@@ -8,11 +8,15 @@ import { Logger } from '../../utils/Logger.js';
  * Pattern: Observer - notifies subscribers when matching rolls arrive
  */
 export class DiceRollMessageHandler extends IMessageHandler {
-  constructor(characterMapper = null, diceRollHandler = null) {
+  constructor(characterMapper = null, diceRollHandler = null, spellCardService = null, tokenBarBridge = null) {
     super();
     this.logger = Logger;
     this.characterMapper = characterMapper;
     this.diceRollHandler = diceRollHandler;
+    // Optional: posts the spell's card when a roll belongs to a spell
+    this.spellCardService = spellCardService;
+    // Optional: fills the roll into a pending Monk's TokenBar request card instead of posting it
+    this.tokenBarBridge = tokenBarBridge;
     // Subscribers waiting for specific roll types
     this.pendingRollCallbacks = [];
     // Cache for rolls that arrive before a dialog is ready
@@ -56,6 +60,16 @@ export class DiceRollMessageHandler extends IMessageHandler {
     const rollData = message.data || message;
     this.logger.log('DDB Sync | DiceRollMessageHandler received roll:', rollData);
 
+    // Spell card first, so it sits above the roll in chat. Never blocks roll sync.
+    if (this.spellCardService) {
+      try {
+        const entityId = rollData.context?.entityId || rollData.entityId;
+        await this.spellCardService.handleRoll(rollData, this._findActorByDDBId(entityId));
+      } catch (err) {
+        this.logger.error('DDB Sync | Error posting spell card:', err);
+      }
+    }
+
     // Notify all pending callbacks and let them decide if the roll matches
     const callbacks = [...this.pendingRollCallbacks];
     let consumed = false;
@@ -71,6 +85,16 @@ export class DiceRollMessageHandler extends IMessageHandler {
         }
       } catch (err) {
         this.logger.error('DDB Sync | Error in roll callback:', err);
+      }
+    }
+
+    // A pending Monk's TokenBar request takes the roll; it is then not posted again.
+    // Never blocks roll sync: on any error the roll is posted normally.
+    if (!consumed && this.tokenBarBridge) {
+      try {
+        consumed = await this.tokenBarBridge.tryConsume(rollData);
+      } catch (err) {
+        this.logger.error('DDB Sync | Error offering roll to Monk\'s TokenBar:', err);
       }
     }
 
