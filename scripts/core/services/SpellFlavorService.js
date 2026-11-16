@@ -31,8 +31,8 @@ export class SpellFlavorService {
   static JOURNAL_NAME = 'Barovia Spell Flavor';
   static FLAG_KEY = 'spellFlavor';
   static DATA_VERSION = 1;
-  /** Whispers for the same actor + spell inside this window are one cast. */
-  static CAST_WINDOW_MS = 10000;
+  /** Rolls of the same actor + spell within this window of each other are one cast (sliding). */
+  static CAST_WINDOW_MS = 60000;
   /** dnd5e school keys -> school names used by the export's `schools` map. */
   static SCHOOLS = {
     abj: 'abjuration', con: 'conjuration', div: 'divination', enc: 'enchantment',
@@ -144,9 +144,9 @@ export class SpellFlavorService {
       if (now - time > windowMs) lastWhisper.delete(k);
     }
     const last = lastWhisper.get(key);
-    if (last !== undefined && now - last <= windowMs) return false;
+    // Sliding window, as in SpellCardService: each roll of the cast extends it.
     lastWhisper.set(key, now);
-    return true;
+    return !(last !== undefined && now - last <= windowMs);
   }
 
   /**

@@ -16,8 +16,12 @@ import { RollModePolicy } from '../../dice/RollModePolicy.js';
  */
 export class SpellCardService {
   static MODULE_ID = 'ddb-sync';
-  /** Rolls of the same spell by the same character inside this window are one cast. */
-  static CAST_WINDOW_MS = 10000;
+  /**
+   * Rolls of the same spell by the same character are one cast while each
+   * comes within this window of the previous one. At the table the damage roll
+   * often follows the attack by half a minute or more.
+   */
+  static CAST_WINDOW_MS = 60000;
   /** How long a posted card suppresses the slot notifier's message for that actor. */
   static ANNOUNCE_WINDOW_MS = 15000;
 
@@ -117,9 +121,10 @@ export class SpellCardService {
       seenRollIds.set(rollId, now);
     }
     const last = lastCast.get(castKey);
-    if (last !== undefined && now - last <= windowMs) return false;
+    // Sliding window: every roll of the cast pushes it on, so attack, then
+    // damage half a minute later, then a reroll still count as one cast.
     lastCast.set(castKey, now);
-    return true;
+    return !(last !== undefined && now - last <= windowMs);
   }
 
   // ---------------------------------------------------------------------------

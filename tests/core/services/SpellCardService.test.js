@@ -41,9 +41,10 @@ class SpellCardService {
       seenRollIds.set(rollId, now);
     }
     const last = lastCast.get(castKey);
-    if (last !== undefined && now - last <= windowMs) return false;
+    // Sliding window: every roll of the cast pushes it on, so attack, then
+    // damage half a minute later, then a reroll still count as one cast.
     lastCast.set(castKey, now);
-    return true;
+    return !(last !== undefined && now - last <= windowMs);
   }
 }
 
@@ -117,6 +118,19 @@ describe('SpellCardService cast dedupe', () => {
     expect(claim('42|fire bolt', 'r1', 0)).toBe(true);
     expect(claim('7|fire bolt', 'r2', 10)).toBe(true);
     expect(claim('42|fireball', 'r3', 20)).toBe(true);
+  });
+
+  it('slides: each roll of the cast extends the window', () => {
+    expect(claim('42|guiding bolt', 'r1', 0)).toBe(true);
+    expect(claim('42|guiding bolt', 'r2', WINDOW - 1)).toBe(false);
+    expect(claim('42|guiding bolt', 'r3', 2 * WINDOW - 2)).toBe(false);
+    expect(claim('42|guiding bolt', 'r4', 3 * WINDOW)).toBe(true);
+  });
+
+  it('table case: attack, then damage 31 s later, with the real window', () => {
+    const real = (key, rollId, now) => SpellCardService.claimCast(lastCast, seen, key, rollId, now, 60000);
+    expect(real('168363599|guiding bolt', 'atk', 0)).toBe(true);
+    expect(real('168363599|guiding bolt', 'dmg', 31000)).toBe(false);
   });
 
   it('works without a rollId and prunes old entries', () => {

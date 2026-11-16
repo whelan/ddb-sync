@@ -97,7 +97,7 @@ Journalen **Barovia Spell Flavor** skal være pushet til verdenen (GM-only). Tes
 | # | Gør | Forventet | ✓/✗ |
 |---|---|---|---|
 | E1 | Spilleren slår en spell med entry (fx *Healing Word*) på D&D Beyond. | GM får **én** whisper "Healing Word · <navn>" med den danske read-aloud. Spilleren ser intet. | |
-| E2 | Spilleren kaster samme spell fra Foundry-sheetet. | GM får én whisper. Ingen dobbelt whisper, heller ikke når kast fra D&D Beyond og sheet sker inden for 10 sek. | |
+| E2 | Spilleren kaster samme spell fra Foundry-sheetet. | GM får én whisper. Ingen dobbelt whisper, heller ikke når kast fra D&D Beyond og sheet sker inden for 60 sek. af hinanden. | |
 | E3 | Kast en spell uden entry i journalen. | Whisper med skolens standardtekst (fx Evocation). | |
 | E4 | Kast en karakter-spell, som **ikke** er afkrydset i Reveal log. | Whisperen har linjen "First use — narrate it and tick the Reveal log". | |
 | E5 | Omdøb journalen midlertidigt og kast en spell. | Ingen whisper, ingen fejl i konsollen; rul og kort virker som normalt. Navngiv journalen tilbage. | |

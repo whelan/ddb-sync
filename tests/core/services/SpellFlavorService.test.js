@@ -61,9 +61,9 @@ class SpellFlavorService {
       if (now - time > windowMs) lastWhisper.delete(k);
     }
     const last = lastWhisper.get(key);
-    if (last !== undefined && now - last <= windowMs) return false;
+    // Sliding window, as in SpellCardService: each roll of the cast extends it.
     lastWhisper.set(key, now);
-    return true;
+    return !(last !== undefined && now - last <= windowMs);
   }
 
   static isValidData(data) {
@@ -201,6 +201,14 @@ describe('lookup', () => {
 });
 
 describe('claimCast', () => {
+  test('slides: attack then damage 31 s later is one whisper with a 60 s window', () => {
+    const map = new Map();
+    expect(SpellFlavorService.claimCast(map, 'p|guiding bolt', 0, 60000)).toBe(true);
+    expect(SpellFlavorService.claimCast(map, 'p|guiding bolt', 31000, 60000)).toBe(false);
+    expect(SpellFlavorService.claimCast(map, 'p|guiding bolt', 90000, 60000)).toBe(false);
+    expect(SpellFlavorService.claimCast(map, 'p|guiding bolt', 151000, 60000)).toBe(true);
+  });
+
   test('one claim per window, then again after it', () => {
     const map = new Map();
     expect(SpellFlavorService.claimCast(map, 'a|fireball', 0, 10000)).toBe(true);

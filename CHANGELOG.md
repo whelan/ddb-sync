@@ -1,3 +1,6 @@
+# 0.0.18
+- Spell cards and Barovia flavor whispers: an attack and its damage roll count as one cast as long as each roll comes within 60 s of the previous one (was a fixed 10 s). At the table the damage often came half a minute after the attack and got a second card and a second whisper.
+
 # 0.0.17
 - Fixed: a roll that ddb-sync starts from a D&D Beyond roll (death save, Monk's TokenBar answer) hung forever when the character's dice mode was **D&D Beyond** or **Manual**. The dice prompt opened and waited for a D&D Beyond roll that had already arrived. The prompt is now skipped while D&D Beyond's dice are queued for the roll.
 
