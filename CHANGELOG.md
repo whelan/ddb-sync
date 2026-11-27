@@ -1,3 +1,6 @@
+# 0.0.19
+- Fixed: tool checks rolled on D&D Beyond (Thieves' Tools, Herbalism Kit, any other tool) never reached Foundry chat. D&D Beyond sends them as a "check" named after the tool, which the ability check handler couldn't map to an ability or skill and dropped with a warning. Any check that is neither now posts D&D Beyond's own roll with D&D Beyond's bonus, flavored "<Tool> Check".
+
 # 0.0.18
 - Spell cards and Barovia flavor whispers: an attack and its damage roll count as one cast as long as each roll comes within 60 s of the previous one (was a fixed 10 s). At the table the damage often came half a minute after the attack and got a second card and a second whisper.
 

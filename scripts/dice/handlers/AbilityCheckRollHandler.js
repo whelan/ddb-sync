@@ -55,8 +55,43 @@ export class AbilityCheckRollHandler extends IRollHandler {
       return this._handleAbilityCheck(actor, rollData, abilityKey);
     }
 
-    this.logger.warn(`DDB Sync | Unknown ability or skill for check: ${rollData.action}`);
-    ui.notifications.warn(`Unknown ability or skill for check: ${rollData.action}`);
+    // Tool checks (Thieves' Tools, Herbalism Kit, ...) and any other check
+    // DDB names with something that is neither an ability nor a skill: post
+    // DDB's own roll, using the bonus D&D Beyond computed for it.
+    return this._handleOtherCheck(actor, rollData);
+  }
+
+  /**
+   * Handle a check that maps to no dnd5e ability or skill, such as a tool
+   * check. D&D Beyond's constant is the bonus, since the tool's proficiency
+   * and ability live on the DDB sheet.
+   * @private
+   */
+  async _handleOtherCheck(actor, rollData) {
+    const checkName = String(rollData.action || '').trim() || 'Unknown';
+    this.logger.log(`DDB Sync | No ability or skill for "${checkName}"; posting D&D Beyond's check as is`);
+
+    const buildFormula = this.diceExtractor.parseDiceFormula(rollData);
+    const ddbDiceResults = this.diceExtractor.extractDiceResults(rollData);
+    const roll = ddbDiceResults.length > 0
+      ? await this.rollBuilder.buildRollWithDDBResults(buildFormula.formula, ddbDiceResults)
+      : await this.rollBuilder.buildBasicRoll(buildFormula.formula);
+
+    let flavor = `${checkName} Check`;
+    if (buildFormula.isAdvantage) {
+      flavor += ' (Advantage)';
+    }
+    else if (buildFormula.isDisadvantage) {
+      flavor += ' (Disadvantage)';
+    }
+
+    const speaker = ChatMessage.getSpeaker({ actor });
+    if (typeof roll.toMessage === 'function') {
+      RollModePolicy.suppressAnimation();
+      await roll.toMessage({ flavor, speaker }, RollModePolicy.messageOptions(actor));
+    }
+
+    this.logger.log(`DDB Sync | ${flavor} rolled: ${roll.total} for ${actor.name}`);
   }
 
   /**
